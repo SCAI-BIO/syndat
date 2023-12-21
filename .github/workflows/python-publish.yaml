@@ -42,7 +42,7 @@ jobs:
         git checkout main
         git add setup.py
         git commit -m "Update version to ${VERSION}"
-        git checkout main
+        git checkout origin main
         git push origin main
     - name: Build package
       run: python -m build
