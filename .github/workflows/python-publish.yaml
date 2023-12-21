@@ -39,7 +39,6 @@ jobs:
         VERSION=${{ github.event.release.tag_name }}
         git config user.email "actions@github.com"
         git config user.name "GitHub Actions"
-        git checkout main
         git add setup.py
         git commit -m "Update version to ${VERSION}"
         # TODO: FIX
