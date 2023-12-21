@@ -34,6 +34,15 @@ jobs:
       run: |
         VERSION=${{ github.event.release.tag_name }}
         sed -i "s/version='.*'/version='${VERSION}'/" setup.py
+              - name: Commit and push changes
+    - name: Commit & push package version
+      run: |
+        VERSION=${{ github.event.release.tag_name }}
+        git config user.email "actions@github.com"
+        git config user.name "GitHub Actions"
+        git add setup.py
+        git commit -m "Update version to ${VERSION}"
+        git push
     - name: Build package
       run: python -m build
     - name: Publish package
