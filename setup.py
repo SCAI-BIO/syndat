@@ -21,5 +21,6 @@ setup(
     license='CC BY-NC-ND 4.0.',
     author='Tim Adams',
     author_email='tim.adams@scai.fraunhofer.de',
-    description=DESCRIPTION
+    description=DESCRIPTION,
+    long_description=long_description
 )
