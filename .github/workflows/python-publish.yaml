@@ -41,7 +41,7 @@ jobs:
         git config user.name "GitHub Actions"
         git add setup.py
         git commit -m "Update version to ${VERSION}"
-        git push
+        git push origin main
     - name: Build package
       run: python -m build
     - name: Publish package
