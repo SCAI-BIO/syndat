@@ -42,8 +42,9 @@ jobs:
         git checkout main
         git add setup.py
         git commit -m "Update version to ${VERSION}"
-        git checkout origin main
-        git push origin main
+        # TODO: FIX
+        #git checkout origin main
+        #git push origin main
     - name: Build package
       run: python -m build
     - name: Publish package
