@@ -45,12 +45,12 @@ def get_jsd(real: pandas.DataFrame, synthetic: pandas.DataFrame, aggregate_resul
         # compute jsd
         jsd = scipy.spatial.distance.jensenshannon(real_binned, virtual_binned)
         jsd_dict[col] = jsd
-        if aggregate_results and aggregation_method == AggregationMethod.AVERAGE:
-            return np.mean(np.array(list(jsd_dict.values())))
-        elif aggregate_results and aggregation_method == AggregationMethod.MEDIAN:
-            return np.median(np.array(list(jsd_dict.values())))
-        else:
-            return jsd_dict
+    if aggregate_results and aggregation_method == AggregationMethod.AVERAGE:
+        return np.mean(np.array(list(jsd_dict.values())))
+    elif aggregate_results and aggregation_method == AggregationMethod.MEDIAN:
+        return np.median(np.array(list(jsd_dict.values())))
+    else:
+        return jsd_dict
 
 
 def get_norm_score(real: pandas.DataFrame, synthetic: pandas.DataFrame):
