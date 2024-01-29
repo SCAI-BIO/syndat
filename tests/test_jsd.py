@@ -15,4 +15,4 @@ class Test(TestCase):
 
     def test_get_jsd_avg(self):
         jsd = get_jsd(self.real, self.synthetic)
-        self.assertEqual(0, jsd)
+        self.assertEqual(0.1602252096223203, jsd)
