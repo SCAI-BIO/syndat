@@ -15,7 +15,7 @@ except FileNotFoundError:
 
 setup(
     name='syndat',
-    version='0.0.1',
+    version='0.0.2',
     packages=['syndat'],
     url='https://github.com/SCAI-BIO/syndat',
     license='CC BY-NC-ND 4.0.',
