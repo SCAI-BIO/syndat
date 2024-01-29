@@ -53,7 +53,7 @@ def get_jsd(real: pandas.DataFrame, synthetic: pandas.DataFrame, aggregate_resul
         return jsd_dict
 
 
-def get_norm_score(real: pandas.DataFrame, synthetic: pandas.DataFrame):
+def get_correlation_quotient(real: pandas.DataFrame, synthetic: pandas.DataFrame):
     corr_real = real.corr()
     corr_synthetic = synthetic.corr()
     norm_diff = np.linalg.norm(corr_real - corr_synthetic)

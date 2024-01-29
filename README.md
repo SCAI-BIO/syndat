@@ -25,7 +25,7 @@ synthetic = pd.read_csv("synthetic.csv")
 
 jsd = quality.get_jsd(real, synthetic)
 auc = quality.get_auc(real, synthetic)
-norm = quality.get_norm_score(real, synthetic)
+norm = quality.get_correlation_quotient(real, synthetic)
 ```
 
 ## Visualization

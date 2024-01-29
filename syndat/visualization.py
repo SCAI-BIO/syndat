@@ -69,9 +69,9 @@ def plot_distributions(real: pandas.DataFrame, synthetic: pandas.DataFrame, stor
         fig.savefig(store_destination + "/" + column_name + '.png', bbox_inches="tight")
 
 
-def create_correlation_plots(real_patients, virtual_patients, store_destination):
-    names = ["dec_rp", "dec_vp"]
-    for idx, patient_type in enumerate([real_patients, virtual_patients]):
+def plot_correlations(real: pandas.DataFrame, synthetic: pandas.DataFrame, store_destination: str):
+    names = ["real_corr", "syntehtic_corr"]
+    for idx, patient_type in enumerate([real, synthetic]):
         plt.figure()
         plt.title("Correlation")
         ax = sns.heatmap(patient_type.corr())
