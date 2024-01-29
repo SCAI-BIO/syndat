@@ -22,5 +22,5 @@ setup(
     author='Tim Adams',
     author_email='tim.adams@scai.fraunhofer.de',
     description=DESCRIPTION,
-    long_description=long_description
+    long_description=DESCRIPTION,
 )
