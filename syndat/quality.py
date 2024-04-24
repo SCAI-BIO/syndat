@@ -1,23 +1,53 @@
+from typing import Union
+
 import pandas
 import pandas as pd
 import numpy as np
 import scipy.spatial.distance
 
-from sklearn import ensemble, neighbors
+from sklearn import ensemble
 from sklearn.model_selection import cross_val_score
 
-from syndat.domain import OutlierPredictionMode, AggregationMethod
+from syndat.domain import AggregationMethod
 
 
-def get_auc(real: pandas.DataFrame, synthetic: pandas.DataFrame, n_folds=10):
+def auc(real: pandas.DataFrame, synthetic: pandas.DataFrame, n_folds=10, score: bool = True) -> float:
+    """
+    Computes the Differentiation Complexity Score / ROC AUC score of a classifier trained to differentiate between real
+    and synthetic data.
+
+    :param real: The real data.
+    :param synthetic: The synthetic data
+    :param n_folds: Number of k folds for cross-validation.
+    :param score: Return result in a normalized score in [0,100]. Default is True.
+    :return: Differentiation Complexity Score / AUC ROC Score
+    """
+    # check for missing values in real data
+    real = real.dropna(thresh=0.8 * len(real))
+    real = real.dropna()
     x = pd.concat([real, synthetic])
     y = np.concatenate((np.zeros(real.shape[0]), np.ones(synthetic.shape[0])), axis=None)
     rfc = ensemble.RandomForestClassifier()
-    return np.average(cross_val_score(rfc, x, y, cv=n_folds, scoring='roc_auc'))
+    auc_score = np.average(cross_val_score(rfc, x, y, cv=n_folds, scoring='roc_auc'))
+    if score:
+        return (1 - auc_score) * 200
+    else:
+        return auc_score
 
 
-def get_jsd(real: pandas.DataFrame, synthetic: pandas.DataFrame, aggregate_results: bool = True,
-            aggregation_method: AggregationMethod = AggregationMethod.AVERAGE):
+def jsd(real: pandas.DataFrame, synthetic: pandas.DataFrame, aggregate_results: bool = True,
+        aggregation_method: AggregationMethod = AggregationMethod.MEDIAN, score: bool = True) -> Union[
+    list[float], float]:
+    """
+    Computes the feature distribution similarity using the Jensen-Shannon distance of real and synthetic data.
+
+    :param real: The real data.
+    :param synthetic: The synthetic data.
+    :param aggregate_results: Compute a single aggregated score for all features. Default is True.
+    :param aggregation_method: How the scores are aggregated. Default is using the median of all feature scores.
+    :param score: Return result in a normalized score in [0,100]. Default is True.
+    :return: Distribution Similarity / JSD
+    """
     # load datasets & remove id column
     jsd_dict = {}
     for col in real:
@@ -45,38 +75,33 @@ def get_jsd(real: pandas.DataFrame, synthetic: pandas.DataFrame, aggregate_resul
         # compute jsd
         jsd = scipy.spatial.distance.jensenshannon(real_binned, virtual_binned)
         jsd_dict[col] = jsd
-    if aggregate_results and aggregation_method == AggregationMethod.AVERAGE:
-        return np.mean(np.array(list(jsd_dict.values())))
-    elif aggregate_results and aggregation_method == AggregationMethod.MEDIAN:
-        return np.median(np.array(list(jsd_dict.values())))
-    else:
+    if not aggregate_results:
         return jsd_dict
+    if aggregate_results and aggregation_method == AggregationMethod.AVERAGE:
+        jsd_aggregated = np.mean(np.array(list(jsd_dict.values())))
+    elif aggregate_results and aggregation_method == AggregationMethod.MEDIAN:
+        jsd_aggregated = np.median(np.array(list(jsd_dict.values())))
+    if not score:
+        return jsd_aggregated
+    else:
+        return (1 - jsd_aggregated) * 100
 
 
-def get_correlation_quotient(real: pandas.DataFrame, synthetic: pandas.DataFrame):
+def correlation(real: pandas.DataFrame, synthetic: pandas.DataFrame, score=True) -> float:
+    """
+    Computes the correlation similarity of real and synthetic data.
+
+    :param real: The real data.
+    :param synthetic: The synthetic data.
+    :param score: Return result in a normalized score in [0,100]. Default is True.
+    :return: Correlation score / Norm Quotient
+    """
     corr_real = real.corr()
     corr_synthetic = synthetic.corr()
     norm_diff = np.linalg.norm(corr_real - corr_synthetic)
     norm_real = np.linalg.norm(corr_real)
     norm_quotient = norm_diff / norm_real
-    return norm_quotient
-
-
-def get_outliers(synthetic: pd.DataFrame, mode: OutlierPredictionMode = OutlierPredictionMode.isolationForest,
-                 anomaly_score: bool = False):
-    if mode == OutlierPredictionMode.isolationForest:
-        model = ensemble.IsolationForest(random_state=42)
-        return outlier_predictions(model, anomaly_score, x=synthetic)
-    elif mode == OutlierPredictionMode.local_outlier_factor:
-        model = neighbors.LocalOutlierFactor(n_neighbors=2)
-        return outlier_predictions(model, anomaly_score, x=synthetic)
-
-
-def outlier_predictions(model, anomaly_score, x):
-    if anomaly_score:
-        model.fit(x)
-        return model.score_samples(X=x) * -1
+    if score:
+        return 1 - max(norm_quotient, 0) * 100
     else:
-        predictions = model.fit_predict(X=x)
-        outliers_idx = np.array(np.where(predictions == -1))[0]
-        return outliers_idx
+        return norm_quotient
