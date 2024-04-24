@@ -23,14 +23,16 @@ def auc(real: pandas.DataFrame, synthetic: pandas.DataFrame, n_folds=10, score: 
     :return: Differentiation Complexity Score / AUC ROC Score
     """
     # check for missing values in real data
-    real = real.dropna(thresh=0.8 * len(real))
-    real = real.dropna()
-    x = pd.concat([real, synthetic])
-    y = np.concatenate((np.zeros(real.shape[0]), np.ones(synthetic.shape[0])), axis=None)
+    real_clean = real.dropna(thresh=int(0.8 * len(real)), axis=1)
+    real_clean = real_clean.dropna()
+    # assert that both real and synthetic have same columns
+    synthetic_clean = synthetic[real_clean.columns]
+    x = pd.concat([real_clean, synthetic_clean])
+    y = np.concatenate((np.zeros(real_clean.shape[0]), np.ones(synthetic_clean.shape[0])), axis=None)
     rfc = ensemble.RandomForestClassifier()
     auc_score = np.average(cross_val_score(rfc, x, y, cv=n_folds, scoring='roc_auc'))
     if score:
-        return (1 - auc_score) * 200
+        return min(0.5, (1 - auc_score)) * 200
     else:
         return auc_score
 
@@ -102,6 +104,6 @@ def correlation(real: pandas.DataFrame, synthetic: pandas.DataFrame, score=True)
     norm_real = np.linalg.norm(corr_real)
     norm_quotient = norm_diff / norm_real
     if score:
-        return 1 - max(norm_quotient, 0) * 100
+        return (1 - max(norm_quotient, 0)) * 100
     else:
         return norm_quotient

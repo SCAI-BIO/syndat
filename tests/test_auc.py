@@ -33,7 +33,15 @@ class Test(unittest.TestCase):
 
     def test_auc_score_with_missing_values(self):
         # Introduce missing values in real data
-        self.real_data.iloc[::10, 0] = np.nan
+        self.real_data.iloc[::10, 0] = np.nan # 10% missing data
+        auc_score = syndat.quality.auc(self.real_data, self.synthetic_data)
+        self.assertTrue(isinstance(auc_score, float))
+        self.assertGreaterEqual(auc_score, 0.0)
+        self.assertLessEqual(auc_score, 100.0)
+
+    def test_auc_score_with_missing_values_drop_col(self):
+        # Introduce missing values in real data
+        self.real_data.iloc[::2, 0] = np.nan # 50% missing data -> col drop
         auc_score = syndat.quality.auc(self.real_data, self.synthetic_data)
         self.assertTrue(isinstance(auc_score, float))
         self.assertGreaterEqual(auc_score, 0.0)
