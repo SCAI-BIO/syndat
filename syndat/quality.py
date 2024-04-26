@@ -56,7 +56,8 @@ def jsd(real: pandas.DataFrame, synthetic: pandas.DataFrame, aggregate_results: 
         # delete empty cells
         real_wo_missing = real[col].dropna()
         # binning
-        if np.sum(real[col].values) % 1 == 0 and np.sum(synthetic[col].values) % 1 == 0:
+        if (np.sum(real[col].values) % 1 == 0 and np.sum(synthetic[col].values) % 1 == 0 and
+                (real[col].values > 0).all() and (synthetic[col].values > 0).all()):
             # categorical column
             real_binned = np.bincount(real[col])
             virtual_binned = np.bincount(synthetic[col])
