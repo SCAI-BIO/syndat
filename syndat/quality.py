@@ -56,8 +56,11 @@ def jsd(real: pandas.DataFrame, synthetic: pandas.DataFrame, aggregate_results: 
         # delete empty cells
         real_wo_missing = real[col].dropna()
         # binning
-        if (np.sum(real[col].values) % 1 == 0 and np.sum(synthetic[col].values) % 1 == 0 and
-                (real[col].values > 0).all() and (synthetic[col].values > 0).all()):
+        col_dtype_real = real[col].dtype
+        col_dtype_synthetic = synthetic[col].dtype
+        if col_dtype_real != col_dtype_synthetic:
+            raise TypeError(f'Real data at col {col} is dtype {col_dtype_real} but synthetic is {col_dtype_synthetic}.')
+        if col_dtype_real == "int64" or col_dtype_real == "object":
             # categorical column
             real_binned = np.bincount(real[col])
             virtual_binned = np.bincount(synthetic[col])
