@@ -1,5 +1,6 @@
 from typing import Union
 
+import logging
 import pandas
 import pandas as pd
 import numpy as np
@@ -9,6 +10,7 @@ from sklearn import ensemble
 from sklearn.model_selection import cross_val_score
 
 from syndat.domain import AggregationMethod
+
 
 
 def auc(real: pandas.DataFrame, synthetic: pandas.DataFrame, n_folds=10, score: bool = True) -> float:
@@ -59,7 +61,10 @@ def jsd(real: pandas.DataFrame, synthetic: pandas.DataFrame, aggregate_results: 
         col_dtype_real = real[col].dtype
         col_dtype_synthetic = synthetic[col].dtype
         if col_dtype_real != col_dtype_synthetic:
-            raise TypeError(f'Real data at col {col} is dtype {col_dtype_real} but synthetic is {col_dtype_synthetic}.')
+            logging.warning(f'Real data at col {col} is dtype {col_dtype_real} but synthetic is {col_dtype_synthetic}. '
+                            f'Evaluation will be done based on the assumed data type of the real data.')
+            for col_synth in synthetic.columns:
+                synthetic[col_synth] = synthetic[col_synth].astype(real[col_synth].dtype)
         if col_dtype_real == "int64" or col_dtype_real == "object":
             # categorical column
             real_binned = np.bincount(real[col])
@@ -79,7 +84,7 @@ def jsd(real: pandas.DataFrame, synthetic: pandas.DataFrame, aggregate_results: 
             else:
                 real_binned = np.pad(real_binned, (0, padding_size))
         # compute jsd
-        jsd = scipy.spatial.distance.jensenshannon(real_binned, virtual_binned)
+        jsd = scipy.spatial.distance.jensenshannon(real_binned, virtual_binned, 2)
         jsd_dict[col] = jsd
     if not aggregate_results:
         return jsd_dict
@@ -90,7 +95,7 @@ def jsd(real: pandas.DataFrame, synthetic: pandas.DataFrame, aggregate_results: 
     if not score:
         return jsd_aggregated
     else:
-        return (1 - jsd_aggregated) * 100
+        return int((1 - jsd_aggregated) * 100)
 
 
 def correlation(real: pandas.DataFrame, synthetic: pandas.DataFrame, score=True) -> float:
