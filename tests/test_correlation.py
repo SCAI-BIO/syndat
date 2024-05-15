@@ -17,7 +17,21 @@ class TestCorrelation(unittest.TestCase):
             'B': [5, 4, 3, 2, 1]
         })
         result = correlation(real_data, synthetic_data)
-        self.assertEqual(result, 100, "Correlation score should be 100 for identical datasets")
+        self.assertEqual(100, result, "Correlation score should be 100 for identical datasets")
+
+    def test_correlation_zero(self):
+        # positive correlation
+        real_data = pd.DataFrame({
+            'A': [-1, 1, -2, 2, -3],
+            'B': [-2, 2, -4, 4, -6]
+        })
+        # negative correlation
+        synthetic_data = pd.DataFrame({
+            'A': [1, -1, 2, -2, 3],
+            'B': [-1, 1, -2, 2, -3]
+        })
+        result = correlation(real_data, synthetic_data)
+        self.assertEqual(0, result)
 
     def test_correlation_normalized(self):
         real_data = pd.DataFrame({
@@ -29,4 +43,4 @@ class TestCorrelation(unittest.TestCase):
             'B': [5, 4, 3, 2, 1]
         })
         result = correlation(real_data, synthetic_data, score=False)
-        self.assertEqual(result, 0, "Normalized correlation score should be 0 for identical datasets")
+        self.assertEqual(0, result, "Normalized correlation score should be 0 for identical datasets")

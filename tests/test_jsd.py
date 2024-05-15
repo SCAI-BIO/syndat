@@ -4,6 +4,7 @@ import pandas as pd
 
 import syndat
 
+
 class Test(TestCase):
 
     def test_jsd_zero_int64(self):
@@ -58,7 +59,7 @@ class Test(TestCase):
         jsd = syndat.quality.jsd(real, synthetic)
         self.assertEqual(jsd, 100)
 
-    def test_jsd_different_coltypes(self):
+    def test_jsd_different_col_types(self):
         synthetic = pd.DataFrame({
             'feature1': [1, 2, 1, 2, 3],
             'feature2': [1.1, 2.1, 3.1, 4.1, 5.1]
@@ -71,4 +72,3 @@ class Test(TestCase):
         jsd = syndat.quality.jsd(real, synthetic, score=False)
         print(jsd)
         print(jsd)
-

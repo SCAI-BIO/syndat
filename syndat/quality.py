@@ -113,6 +113,9 @@ def correlation(real: pandas.DataFrame, synthetic: pandas.DataFrame, score=True)
     norm_real = np.linalg.norm(corr_real)
     norm_quotient = norm_diff / norm_real
     if score:
+        # will not happen in a realistic scenario, only if (nearly) all correlations are opposing
+        if norm_quotient > 1:
+            return 0
         return (1 - max(norm_quotient, 0)) * 100
     else:
         return norm_quotient
