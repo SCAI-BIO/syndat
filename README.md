@@ -1,5 +1,7 @@
 # Syndat
-Synthetic data quality evaluation &amp; visualization 
+![tests](https://github.com/SCAI-BIO/syndat/actions/workflows/tests.yaml/badge.svg) ![GitHub Release](https://img.shields.io/github/v/release/SCAI-BIO/syndat)
+
+Syndat is a software package that provides basic functionalities for the evaluation and visualizsation of synthetic data. Quality scores can be computed on 3 base metrics (Discrimation, Correlation and Distribution) and data may be visualized to inspect correlation structures or statistical distribution plots.
 
 # Installation
 
@@ -18,14 +20,14 @@ distribution similarity or pairwise feature correlations:
 
 ```python
 import pandas as pd
-from syndat import quality
+import syndat
 
 real = pd.read_csv("real.csv")
 synthetic = pd.read_csv("synthetic.csv")
 
-jsd = quality.get_jsd(real, synthetic)
-auc = quality.get_auc(real, synthetic)
-norm = quality.get_correlation_quotient(real, synthetic)
+jsd = syndat.quality.jsd(real, synthetic)
+auc = syndat.quality.auc(real, synthetic)
+norm = syndat.quality.correlation(real, synthetic)
 ```
 
 ## Visualization
@@ -34,11 +36,12 @@ Visualize real vs. synthetic data distributions and summary statistics for each 
 
 ```python
 import pandas as pd
-from syndat import visualization
+import syndat
 
 real = pd.read_csv("real.csv")
 synthetic = pd.read_csv("synthetic.csv")
 
-visualization.plot_distributions(real, synthetic, store_destination="results/plots")
+syndat.visualization.plot_distributions(real, synthetic, store_destination="results/plots")
+syndat.visualization.plot_correlations(real, synthetic, store_destination="results/plots")
 ```
 
