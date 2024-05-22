@@ -66,6 +66,11 @@ def jsd(real: pandas.DataFrame, synthetic: pandas.DataFrame, aggregate_results: 
             for col_synth in synthetic.columns:
                 synthetic[col_synth] = synthetic[col_synth].astype(real[col_synth].dtype)
         if col_dtype_real == "int64" or col_dtype_real == "object":
+            # handle negative values for bincount -> shift all codes to positive (will yield same result in JSD)
+            min_value = min(real[col].min(), synthetic[col].min())
+            if min_value < 0:
+                real[col] = real[col] + abs(min_value)
+                synthetic[col] = synthetic[col] + abs(min_value)
             # categorical column
             real_binned = np.bincount(real[col])
             virtual_binned = np.bincount(synthetic[col])
