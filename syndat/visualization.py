@@ -61,7 +61,7 @@ def plot_correlations(real: pandas.DataFrame, synthetic: pandas.DataFrame, store
     for idx, patient_type in enumerate([real, synthetic]):
         plt.figure()
         plt.title("Correlation")
-        ax = sns.heatmap(patient_type.corr())
+        ax = sns.heatmap(patient_type.corr(), vmin=-1, vmax=1)
         fig = ax.get_figure()
         fig.savefig(store_destination + "/" + names[idx] + '.png', bbox_inches="tight")
 
