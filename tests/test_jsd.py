@@ -70,5 +70,28 @@ class Test(TestCase):
             'feature2': [1, 2, 3, 4, 5]
         })
         jsd = syndat.quality.jsd(real, synthetic, score=False)
-        print(jsd)
-        print(jsd)
+
+    def test_jsd_negative_int64(self):
+        synthetic = pd.DataFrame({
+            'feature1': [1, 2, 1, 2, 3],
+            'feature2': [1.1, 2.1, 3.1, 4.1, 5.1]
+        })
+        # Create real data
+        real = pd.DataFrame({
+            'feature1': [-1, 2, 3, 4, 5],
+            'feature2': [1, 2, 3, 4, 5]
+        })
+        jsd = syndat.quality.jsd(real, synthetic)
+
+    def test_jsd_single_outlier(self):
+        synthetic = pd.DataFrame({
+            'feature1': [1, 1, 1, 1, 1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 100],
+            'feature2': [1, 1, 1, 1, 1, 1,  2, 3, 4, 5, 6, 7, 8, 9, 9],
+        })
+        # Create real data
+        real = pd.DataFrame({
+            'feature1': [1, 1, 1, 1, 1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9],
+            'feature2': [1, 1, 1, 1, 1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 100],
+        })
+        jsd = syndat.quality.jsd(real, synthetic)
+        self.assertTrue(jsd < 100)

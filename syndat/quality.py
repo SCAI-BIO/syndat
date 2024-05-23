@@ -40,8 +40,8 @@ def auc(real: pandas.DataFrame, synthetic: pandas.DataFrame, n_folds=10, score: 
 
 
 def jsd(real: pandas.DataFrame, synthetic: pandas.DataFrame, aggregate_results: bool = True,
-        aggregation_method: AggregationMethod = AggregationMethod.MEDIAN, score: bool = True) -> Union[
-    list[float], float]:
+        aggregation_method: AggregationMethod = AggregationMethod.MEDIAN, score: bool = True,
+        n_unique_threshold = 10) -> Union[list[float], float]:
     """
     Computes the feature distribution similarity using the Jensen-Shannon distance of real and synthetic data.
 
@@ -50,6 +50,8 @@ def jsd(real: pandas.DataFrame, synthetic: pandas.DataFrame, aggregate_results: 
     :param aggregate_results: Compute a single aggregated score for all features. Default is True.
     :param aggregation_method: How the scores are aggregated. Default is using the median of all feature scores.
     :param score: Return result in a normalized score in [0,100]. Default is True.
+    :param n_unique_threshold: threshold to determine at which number of unique values bins will spann over s#
+    several values
     :return: Distribution Similarity / JSD
     """
     # load datasets & remove id column
@@ -65,13 +67,14 @@ def jsd(real: pandas.DataFrame, synthetic: pandas.DataFrame, aggregate_results: 
                             f'Evaluation will be done based on the assumed data type of the real data.')
             for col_synth in synthetic.columns:
                 synthetic[col_synth] = synthetic[col_synth].astype(real[col_synth].dtype)
-        if col_dtype_real == "int64" or col_dtype_real == "object":
+        # categorical column
+        n_unique_values = len(real[col].unique())
+        if col_dtype_real == "int64" or col_dtype_real == "object" and n_unique_values <= n_unique_threshold:
             # handle negative values for bincount -> shift all codes to positive (will yield same result in JSD)
             min_value = min(real[col].min(), synthetic[col].min())
             if min_value < 0:
                 real[col] = real[col] + abs(min_value)
                 synthetic[col] = synthetic[col] + abs(min_value)
-            # categorical column
             real_binned = np.bincount(real[col])
             virtual_binned = np.bincount(synthetic[col])
         else:
