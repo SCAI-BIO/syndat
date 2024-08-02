@@ -95,3 +95,81 @@ class Test(TestCase):
         })
         jsd = syndat.quality.jsd(real, synthetic)
         self.assertTrue(jsd < 100)
+
+    def test_jsd_categorical_equal(self):
+        synthetic = pd.DataFrame({
+            'feature1': ['A', 'B', 'A', 'B', 'C'],
+            'feature2': ['X', 'Y', 'Y', 'X', 'Z']
+        })
+        # Create real data
+        real = pd.DataFrame({
+            'feature1': ['A', 'B', 'A', 'B', 'C'],
+            'feature2': ['X', 'Y', 'Y', 'X', 'Z']
+        })
+        jsd = syndat.quality.jsd(real, synthetic)
+        self.assertEqual(jsd, 100)
+
+    def test_jsd_categorical_different(self):
+        synthetic = pd.DataFrame({
+            'feature1': ['A', 'B', 'A', 'B', 'C'],
+            'feature2': ['X', 'Y', 'Y', 'X', 'Z']
+        })
+        # Create real data
+        real = pd.DataFrame({
+            'feature1': ['A', 'B', 'A', 'B', 'D'],
+            'feature2': ['X', 'Y', 'Z', 'X', 'W']
+        })
+        jsd = syndat.quality.jsd(real, synthetic)
+        self.assertTrue(jsd < 100)
+
+    def test_jsd_categorical_mixed(self):
+        synthetic = pd.DataFrame({
+            'feature1': ['A', 'B', 'C', 'D', 'E'],
+            'feature2': [1.0, 2.0, 3.0, 4.0, 5.0]
+        })
+        # Create real data
+        real = pd.DataFrame({
+            'feature1': ['A', 'B', 'C', 'F', 'G'],
+            'feature2': [1.0, 2.0, 3.0, 6.0, 7.0]
+        })
+        jsd = syndat.quality.jsd(real, synthetic)
+        self.assertTrue(jsd < 100)
+
+    def test_jsd_categorical_with_numerical(self):
+        synthetic = pd.DataFrame({
+            'feature1': ['A', 'B', 'C', 'A', 'B'],
+            'feature2': [1.0, 2.0, 3.0, 4.0, 5.0]
+        })
+        # Create real data
+        real = pd.DataFrame({
+            'feature1': ['A', 'B', 'C', 'A', 'D'],
+            'feature2': [1.0, 2.0, 3.0, 4.0, 6.0]
+        })
+        jsd = syndat.quality.jsd(real, synthetic)
+        self.assertTrue(jsd < 100)
+
+    def test_jsd_categorical_with_nan(self):
+        synthetic = pd.DataFrame({
+            'feature1': ['A', 'B', 'C', 'D', 'E'],
+            'feature2': [1.0, 2.0, 3.0, 4.0, 5.0]
+        })
+        # Create real data with NaNs
+        real = pd.DataFrame({
+            'feature1': ['A', 'B', 'C', 'D', None],
+            'feature2': [1.0, 2.0, None, 4.0, 5.0]
+        })
+        jsd = syndat.quality.jsd(real, synthetic)
+        self.assertTrue(jsd < 100)
+
+    def test_jsd_categorical_all_nan(self):
+        synthetic = pd.DataFrame({
+            'feature1': [None, None, None, None, None],
+            'feature2': [None, None, None, None, None]
+        })
+        # Create real data with NaNs
+        real = pd.DataFrame({
+            'feature1': [None, None, None, None, None],
+            'feature2': [None, None, None, None, None]
+        })
+        jsd = syndat.quality.jsd(real, synthetic)
+        self.assertEqual(jsd, 100)
