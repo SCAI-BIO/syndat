@@ -48,14 +48,16 @@ def discrimination_score(real: pandas.DataFrame, synthetic: pandas.DataFrame, n_
     :param score: Return result in a normalized score in [0,100]. Default is True.
     :return: Differentiation Complexity Score / AUC ROC Score
     """
+    # filter out entries that are not inclusive for both datasets
+    real_filtered, synthetic_filtered = __filter_rows_with_common_categories(real, synthetic)
     # check for missing values in real data
-    real_clean = real.dropna(thresh=int(drop_na_threshold * len(real)), axis=1)
+    real_clean = real_filtered.dropna(thresh=int(drop_na_threshold * len(real_filtered)), axis=1)
     logging.info(f'Dropped {real_clean.shape[1] - real_clean.shape[1]} '
                  f'due to high missingness (threshold is {drop_na_threshold}).')
     real_clean = real_clean.dropna()
     logging.info(f'Removed {len(real) - len(real_clean)} entries due to missing values.')
     # assert that both real and synthetic have same columns
-    synthetic_clean = synthetic[real_clean.columns]
+    synthetic_clean = synthetic_filtered[real_clean.columns]
     # one-hot-encode categorical columns
     real_clean_encoded = __encode_categorical(real_clean)
     synthetic_clean_encoded = __encode_categorical(synthetic_clean)
