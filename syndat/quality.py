@@ -1,3 +1,4 @@
+import warnings
 from typing import Union, List
 
 import logging
@@ -15,6 +16,27 @@ from syndat.domain import AggregationMethod
 
 def auc(real: pandas.DataFrame, synthetic: pandas.DataFrame, n_folds=5,
         drop_na_threshold=0.9, score: bool = True) -> float:
+    """
+    Computes the Differentiation Complexity Score / ROC AUC score of a classifier trained to differentiate between real
+    and synthetic data.
+
+    :param real: The real data.
+    :param synthetic: The synthetic data
+    :param n_folds: Number of k folds for cross-validation.
+    :param drop_na_threshold: Percentage of non-missing values required of any column
+    :param score: Return result in a normalized score in [0,100]. Default is True.
+    :return: Differentiation Complexity Score / AUC ROC Score
+    """
+    warnings.warn(
+        "old_function is deprecated and will be removed in a future version. Please use discrimination_score instead.",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return discrimination_score(real, synthetic, n_folds=n_folds, drop_na_threshold=drop_na_threshold, score=score)
+
+
+def discrimination_score(real: pandas.DataFrame, synthetic: pandas.DataFrame, n_folds=5,
+                         drop_na_threshold=0.9, score: bool = True) -> float:
     """
     Computes the Differentiation Complexity Score / ROC AUC score of a classifier trained to differentiate between real
     and synthetic data.
