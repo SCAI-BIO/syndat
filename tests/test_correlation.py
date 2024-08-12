@@ -2,7 +2,7 @@ import unittest
 
 import pandas as pd
 
-from syndat.quality import correlation
+from syndat.scores import correlation
 
 
 class TestCorrelation(unittest.TestCase):
