@@ -44,7 +44,7 @@ setup(
     ],
     include_package_data=True,  # Ensure non-Python files are included
     python_requires='>=3.9',  # Specify minimum Python version
-    keywords='synthetic-data',
+    keywords='synthetic-data, data-quality, data-visualization',
     project_urls={
         'Documentation': 'https://github.com/SCAI-BIO/syndat#readme',
         'Source': 'https://github.com/SCAI-BIO/syndat',
