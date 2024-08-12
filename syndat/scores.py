@@ -13,11 +13,13 @@ from sklearn.preprocessing import OneHotEncoder
 
 from syndat.domain import AggregationMethod
 
+logger = logging.getLogger(__name__)
+
 
 def auc(real: pandas.DataFrame, synthetic: pandas.DataFrame, n_folds=5,
         drop_na_threshold=0.9, score: bool = True) -> float:
     """
-    Computes the Differentiation Complexity Score / ROC AUC score of a classifier trained to differentiate between real
+    Computes the Discrimination Complexity Score / ROC AUC score of a classifier trained to differentiate between real
     and synthetic data.
 
     :param real: The real data.
@@ -27,18 +29,43 @@ def auc(real: pandas.DataFrame, synthetic: pandas.DataFrame, n_folds=5,
     :param score: Return result in a normalized score in [0,100]. Default is True.
     :return: Differentiation Complexity Score / AUC ROC Score
     """
+
     warnings.warn(
-        "old_function is deprecated and will be removed in a future version. Please use discrimination_score instead.",
+        "auc is deprecated and will be removed in a future version. Please use discrimination instead.",
         DeprecationWarning,
         stacklevel=2
     )
-    return discrimination_score(real, synthetic, n_folds=n_folds, drop_na_threshold=drop_na_threshold, score=score)
+    return discrimination(real, synthetic, n_folds=n_folds, drop_na_threshold=drop_na_threshold, score=score)
 
 
-def discrimination_score(real: pandas.DataFrame, synthetic: pandas.DataFrame, n_folds=5,
-                         drop_na_threshold=0.9, score: bool = True) -> float:
+def jsd(real: pd.DataFrame, synthetic: pd.DataFrame, aggregate_results: bool = True,
+        aggregation_method: AggregationMethod = AggregationMethod.AVERAGE, score: bool = True,
+        n_unique_threshold=10) -> Union[List[float], float]:
     """
-    Computes the Differentiation Complexity Score / ROC AUC score of a classifier trained to differentiate between real
+    Computes the feature distribution similarity using the Jensen-Shannon distance of real and synthetic data.
+
+    :param real: The real data.
+    :param synthetic: The synthetic data.
+    :param aggregate_results: Compute a single aggregated score for all features. Default is True.
+    :param aggregation_method: How the scores are aggregated. Default is using the median of all feature scores.
+    :param score: Return result in a normalized score in [0,100]. Default is True.
+    :param n_unique_threshold: Threshold to determine at which number of unique values bins will span over several
+    values.
+    :return: Distribution Similarity / JSD
+    """
+
+    warnings.warn(
+        "auc is deprecated and will be removed in a future version. Please use discrimination instead.",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return distribution(real, synthetic, aggregate_results, aggregation_method, score, n_unique_threshold)
+
+
+def discrimination(real: pandas.DataFrame, synthetic: pandas.DataFrame, n_folds=5,
+                   drop_na_threshold=0.9, score: bool = True) -> float:
+    """
+    Computes the Discrimination Complexity Score / ROC AUC score of a classifier trained to differentiate between real
     and synthetic data.
 
     :param real: The real data.
@@ -52,10 +79,10 @@ def discrimination_score(real: pandas.DataFrame, synthetic: pandas.DataFrame, n_
     real_filtered, synthetic_filtered = __filter_rows_with_common_categories(real, synthetic)
     # check for missing values in real data
     real_clean = real_filtered.dropna(thresh=int(drop_na_threshold * len(real_filtered)), axis=1)
-    logging.info(f'Dropped {real_clean.shape[1] - real_clean.shape[1]} '
+    logger.info(f'Dropped {real_clean.shape[1] - real_clean.shape[1]} '
                  f'due to high missingness (threshold is {drop_na_threshold}).')
     real_clean = real_clean.dropna()
-    logging.info(f'Removed {len(real) - len(real_clean)} entries due to missing values.')
+    logger.info(f'Removed {len(real) - len(real_clean)} entries due to missing values.')
     # assert that both real and synthetic have same columns
     synthetic_clean = synthetic_filtered[real_clean.columns]
     # one-hot-encode categorical columns
@@ -74,9 +101,9 @@ def discrimination_score(real: pandas.DataFrame, synthetic: pandas.DataFrame, n_
         return auc_score
 
 
-def jsd(real: pd.DataFrame, synthetic: pd.DataFrame, aggregate_results: bool = True,
-        aggregation_method: AggregationMethod = AggregationMethod.AVERAGE, score: bool = True,
-        n_unique_threshold=10) -> Union[List[float], float]:
+def distribution(real: pd.DataFrame, synthetic: pd.DataFrame, aggregate_results: bool = True,
+                 aggregation_method: AggregationMethod = AggregationMethod.AVERAGE, score: bool = True,
+                 n_unique_threshold=10) -> Union[List[float], float]:
     """
     Computes the feature distribution similarity using the Jensen-Shannon distance of real and synthetic data.
 
@@ -100,7 +127,7 @@ def jsd(real: pd.DataFrame, synthetic: pd.DataFrame, aggregate_results: bool = T
         col_dtype_real = real[col].dtype
         col_dtype_synthetic = synthetic[col].dtype
         if col_dtype_real != col_dtype_synthetic:
-            logging.warning(f'Real data at col {col} is dtype {col_dtype_real} but synthetic is {col_dtype_synthetic}. '
+            logger.warning(f'Real data at col {col} is dtype {col_dtype_real} but synthetic is {col_dtype_synthetic}. '
                             f'Evaluation will be done based on the assumed data type of the real data.')
             synthetic[col] = synthetic[col].astype(col_dtype_real)
         # categorical column
@@ -216,21 +243,15 @@ def __filter_rows_with_common_categories(real: pd.DataFrame, synthetic: pd.DataF
     synthetic_categorical_cols = synthetic.select_dtypes(include=['object', 'category']).columns
     # Identify common categorical columns
     common_categorical_cols = set(real_categorical_cols) & set(synthetic_categorical_cols)
-    if not common_categorical_cols:
-        logging.warning("No common categorical columns found. Correlation will be computed on numeric data only.")
     # Filter rows with common categories in each column
     for col in common_categorical_cols:
         real_categories = set(real[col].unique())
         synthetic_categories = set(synthetic[col].unique())
         common_categories = real_categories & synthetic_categories
         if len(real_categories - common_categories) > 0:
-            logging.warning(
-                f"Categories {real_categories - common_categories} in column '{col}' "
-                f"are in real data but not in synthetic data and will be excluded.")
-        if len(synthetic_categories - common_categories) > 0:
-            logging.warning(
-                f"Categories {synthetic_categories - common_categories} in column '{col}' "
-                f"are in synthetic data but not in real data and will be excluded.")
+            logger.warning(
+                f"Categories {real_categories - common_categories} in column '{col}' are in real data but not in "
+                f"synthetic data. They will not be considered in the score computation.")
         # Filter rows to keep only common categories
         real = real[real[col].isin(common_categories)]
         synthetic = synthetic[synthetic[col].isin(common_categories)]
