@@ -28,10 +28,10 @@ setup(
         'pandas~=2.1.4',
         'numpy~=1.26.2',
         'scipy~=1.11.4',
-        'scikit-learn~=1.3.2',
+        'scikit-learn~=1.5.1',
         'matplotlib~=3.8.2',
         'seaborn~=0.13.0',
-        'setuptools==69.0.2'
+        'setuptools==70.0.0'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
