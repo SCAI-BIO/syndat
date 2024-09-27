@@ -31,6 +31,7 @@ setup(
         'scikit-learn~=1.5',
         'matplotlib~=3.8',
         'seaborn~=0.13',
+        'shap~=0.42.0',
         'setuptools>=70.0.0'
     ],
     classifiers=[
