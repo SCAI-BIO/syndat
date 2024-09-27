@@ -1,3 +1,8 @@
+from syndat import domain
+from syndat import scores
+from syndat import visualization
+from syndat import postprocessing
+
 from .visualization import (
     plot_distributions,
     plot_correlations,
