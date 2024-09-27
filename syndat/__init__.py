@@ -1,3 +1,3 @@
 from syndat import domain
-from syndat import quality
+from syndat import scores
 from syndat import visualization

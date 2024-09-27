@@ -25,10 +25,17 @@ import syndat
 real = pd.read_csv("real.csv")
 synthetic = pd.read_csv("synthetic.csv")
 
-jsd = syndat.quality.jsd(real, synthetic)
-auc = syndat.quality.auc(real, synthetic)
-norm = syndat.quality.correlation(real, synthetic)
+# How similar are the statistical distributions of real and synthetic features 
+distribution_similarity_score = syndat.scores.distribution(real, synthetic)
+
+# How hard is it for a classifier to discriminate real and synthetic data
+discrimination_score = syndat.scores.discrimination(real, synthetic)
+
+# How well are pairwise feature correlations preserved
+correlation_score = syndat.scores.correlation(real, synthetic)
 ```
+
+Scores are defined in a range of 0-100, with a higher score corresponding to better data fidelity.
 
 ## Visualization
 
