@@ -39,7 +39,7 @@ Scores are defined in a range of 0-100, with a higher score corresponding to bet
 
 ## Visualization
 
-Visualize real vs. synthetic data distributions and summary statistics for each feature:
+Visualize real vs. synthetic data distributions, summary statistics and discriminating features:
 
 ```python
 import pandas as pd
@@ -48,7 +48,32 @@ import syndat
 real = pd.read_csv("real.csv")
 synthetic = pd.read_csv("synthetic.csv")
 
+# plot *all* feature distribution and store image files
 syndat.visualization.plot_distributions(real, synthetic, store_destination="results/plots")
 syndat.visualization.plot_correlations(real, synthetic, store_destination="results/plots")
+
+# plot and display specific feature distribution plot
+syndat.visualization.plot_numerical_feature("feature_xy", real, synthetic)
+syndat.visualization.plot_numerical_feature("feature_xy", real, synthetic)
+
+# plot a shap plot of differentiating feature for real and synthetic data
+syndat.visualization.plot_shap_discrimination(real, synthetic)
+```
+
+
+## Postprocessing
+
+Postprocess synthetic data to improve data fidelity:
+
+```python
+import pandas as pd
+import syndat
+
+real = pd.read_csv("real.csv")
+synthetic = pd.read_csv("synthetic.csv")
+
+# postprocess synthetic data
+synthetic_post = syndat.postprocessing.assert_minmax(real, synthetic)
+synthetic_post = syndat.postprocessing.normalize_float_precision(real, synthetic)
 ```
 
