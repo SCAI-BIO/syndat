@@ -69,8 +69,18 @@ def plot_correlations(real: pandas.DataFrame, synthetic: pandas.DataFrame, store
         fig = ax.get_figure()
         fig.savefig(store_destination + "/" + names[idx] + '.png', bbox_inches="tight")
 
-def plot_shap_discrimination(real: pandas.DataFrame, synthetic: pandas.DataFrame) -> None:
-    # Assuming 'real' and 'synthetic_no_dp' are your datasets and are pandas DataFrames
+def plot_shap_discrimination(real: pd.DataFrame, synthetic: pd.DataFrame, save_path: str = None) -> None:
+    """
+    Generates a SHAP summary plot to illustrate the discrimination between real and synthetic datasets
+    using a Random Forest classifier.
+
+    :param real: The real data
+    :param synthetic: The synthetic data
+    :param save_path: Path to the file where the resulting plot should be saved. If None, the plot will not be saved.
+
+    :return: None
+    """
+    # Assuming 'real' and 'synthetic' are your datasets and are pandas DataFrames
     # Add a label column to each dataset
     real['label'] = 1
     synthetic['label'] = 0
@@ -99,7 +109,16 @@ def plot_shap_discrimination(real: pandas.DataFrame, synthetic: pandas.DataFrame
     shap_values = explainer.shap_values(X_test)
 
     # Plot SHAP summary
-    shap.summary_plot(shap_values[1], X_test)
+    plt.figure()
+    shap.summary_plot(shap_values[1], X_test, show=False)
+
+    # Save the plot if save_path is specified
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight')
+        print(f"Plot saved to {save_path}")
+
+    # Show the plot
+    plt.show()
 
 
 def plot_categorical_feature(feature: str, real_data: pandas.DataFrame, synthetic_data: pandas.DataFrame) -> None:
