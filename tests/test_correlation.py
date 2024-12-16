@@ -116,3 +116,16 @@ class TestCorrelation(unittest.TestCase):
         # Adjust the expected result based on encoding and correlation of categorical data
         self.assertLess(result, 100, "Correlation score should be less than 100 for datasets with different "
                                      "categorical data")
+
+    def test_correlation_constant_column(self):
+        real_data = pd.DataFrame({
+            'A': [1, 1, 1, 1, 1],
+            'B': [2, 3, 4, 5, 6]
+        })
+        synthetic_data = pd.DataFrame({
+            'A': [1, 1, 1, 1, 1],
+            'B': [2, 3, 4, 5, 6]
+        })
+        result = correlation(real_data, synthetic_data)
+        # Depending on the implementation, the correlation might return NaN or handle it explicitly
+        self.assertFalse(pd.isna(result), "Correlation score should not result in NaN even with a constant column")
