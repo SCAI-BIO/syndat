@@ -220,8 +220,6 @@ def correlation(real: pd.DataFrame, synthetic: pd.DataFrame, score=True) -> floa
     if not corr_real.drop(columns=one_hot_encoded_columns).empty:
         corr_real = corr_real.drop(columns=one_hot_encoded_columns)
         corr_synthetic = corr_synthetic.drop(columns=one_hot_encoded_columns)
-    # assure both matrices have the same columns
-    corr_synthetic = corr_synthetic[corr_real]
     # now compute correlation matrices
     corr_diff = corr_real - corr_synthetic
     norm_diff = np.linalg.norm(corr_diff)
