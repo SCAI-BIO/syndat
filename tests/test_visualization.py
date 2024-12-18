@@ -18,7 +18,7 @@ class TestPlotShapDiscrimination(unittest.TestCase):
 
     def test_plot_shap_discrimination(self):
         # Call the function with test data and save_path
-        plot_shap_discrimination(self.real, self.synthetic, save_path=self.save_path)
+        plot_shap_discrimination(self.real, self.synthetic, img_save_path=self.save_path)
 
         # Check if the plot file was created
         self.assertTrue(os.path.exists(self.save_path), "SHAP plot file was not created.")

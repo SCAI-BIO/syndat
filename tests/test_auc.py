@@ -1,8 +1,9 @@
 import pandas as pd
 import numpy as np
-import syndat
 
 import unittest
+
+import syndat
 
 
 class Test(unittest.TestCase):
@@ -43,7 +44,7 @@ class Test(unittest.TestCase):
         return real_data_encoded, synthetic_data_encoded
 
     def test_auc_score(self):
-        auc_score = syndat.scores.discrimination(self.real_data, self.synthetic_data)
+        auc_score = syndat.metrics.discriminator_auc(self.real_data, self.synthetic_data)
         self.assertTrue(isinstance(auc_score, float))
         self.assertGreaterEqual(auc_score, 0.0)
         self.assertLessEqual(auc_score, 100.0)
@@ -81,3 +82,5 @@ class Test(unittest.TestCase):
         self.assertTrue(isinstance(auc_score, float))
         self.assertGreaterEqual(auc_score, 0.0)
         self.assertLessEqual(auc_score, 100.0)
+
+

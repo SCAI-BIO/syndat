@@ -5,19 +5,19 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from pandas.plotting import table
-from sklearn.model_selection import train_test_split  
-from sklearn.ensemble import RandomForestClassifier  
-from sklearn.metrics import roc_auc_score  
-import shap  # Added
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import roc_auc_score
+import shap
 
 
-def plot_distributions(real: pandas.DataFrame, synthetic: pandas.DataFrame, store_destination: str) -> None:
+def plot_distributions(real: pandas.DataFrame, synthetic: pandas.DataFrame, img_save_path: str) -> None:
     """
     Plots violin plots (numeric features) or bar charts (categorical features) together with their summary statistics.
 
     :param real: The real data
     :param synthetic: The synthetic data
-    :param store_destination: Path to the folder where the results should be stored.
+    :param img_save_path: Path to the folder where the results should be stored.
     """
     for column_name in real.columns:
         matplotlib.use('Agg')
@@ -50,16 +50,19 @@ def plot_distributions(real: pandas.DataFrame, synthetic: pandas.DataFrame, stor
                   colWidths=[.5, .5])
         fig = ax.get_figure()
         matplotlib.pyplot.close()
-        fig.savefig(store_destination + "/" + column_name + '.png', bbox_inches="tight")
+        if not img_save_path:
+            plt.show()
+        else:
+            fig.savefig(img_save_path + "/" + column_name + '.png', bbox_inches="tight")
 
 
-def plot_correlations(real: pandas.DataFrame, synthetic: pandas.DataFrame, store_destination: str) -> None:
+def plot_correlations(real: pandas.DataFrame, synthetic: pandas.DataFrame, img_save_path: str) -> None:
     """
     Plots correlation matrices for real and synthetic features in form of heatmaps.
 
     :param real: The real data
     :param synthetic: The synthetic data
-    :param store_destination: Path to the folder where the results should be stored.
+    :param img_save_path: Path to the folder where the results should be stored.
     """
     names = ["real_corr", "syntehtic_corr"]
     for idx, patient_type in enumerate([real, synthetic]):
@@ -67,16 +70,20 @@ def plot_correlations(real: pandas.DataFrame, synthetic: pandas.DataFrame, store
         plt.title("Correlation")
         ax = sns.heatmap(patient_type.corr(), vmin=-1, vmax=1)
         fig = ax.get_figure()
-        fig.savefig(store_destination + "/" + names[idx] + '.png', bbox_inches="tight")
+        if not img_save_path:
+            plt.show()
+        else:
+            fig.savefig(img_save_path + "/" + names[idx] + '.png', bbox_inches="tight")
 
-def plot_shap_discrimination(real: pd.DataFrame, synthetic: pd.DataFrame, save_path: str = None) -> None:
+
+def plot_shap_discrimination(real: pd.DataFrame, synthetic: pd.DataFrame, img_save_path: str = None) -> None:
     """
     Generates a SHAP summary plot to illustrate the discrimination between real and synthetic datasets
     using a Random Forest classifier.
 
     :param real: The real data
     :param synthetic: The synthetic data
-    :param save_path: Path to the file where the resulting plot should be saved. If None, the plot will not be saved.
+    :param img_save_path: Path to the file where the resulting plot should be saved. If None, the plot will not be saved.
 
     :return: None
     """
@@ -113,9 +120,9 @@ def plot_shap_discrimination(real: pd.DataFrame, synthetic: pd.DataFrame, save_p
     shap.summary_plot(shap_values[1], X_test, show=False)
 
     # Save the plot if save_path is specified
-    if save_path:
-        plt.savefig(save_path, bbox_inches='tight')
-        print(f"Plot saved to {save_path}")
+    if img_save_path:
+        plt.savefig(img_save_path, bbox_inches='tight')
+        print(f"Plot saved to {img_save_path}")
 
     # Show the plot
     plt.show()
@@ -165,6 +172,7 @@ def plot_numerical_feature(feature: str, real_data: pandas.DataFrame, synthetic_
     :param real_data: The real data
     :param synthetic_data: The synthetic data
     """
+
     # Calculate summary statistics
     # Calculate summary statistics
     def get_summary_stats(data, feature):
@@ -175,17 +183,19 @@ def plot_numerical_feature(feature: str, real_data: pandas.DataFrame, synthetic_
             'Min': data[feature].min(),
             'Max': data[feature].max()
         }
-    
+
     real_stats = get_summary_stats(real_data, feature)
     synthetic_stats = get_summary_stats(synthetic_data, feature)
-    
+
     # Create summary statistics DataFrame
     stats_df = pd.DataFrame({
         'Statistic': ['Mean', 'Median', 'Std Dev', 'Min', 'Max'],
-        'Real Data': [real_stats['Mean'], real_stats['Median'], real_stats['Std Dev'], real_stats['Min'], real_stats['Max']],
-        'Synthetic Data': [synthetic_stats['Mean'], synthetic_stats['Median'], synthetic_stats['Std Dev'], synthetic_stats['Min'], synthetic_stats['Max']]
+        'Real Data': [real_stats['Mean'], real_stats['Median'], real_stats['Std Dev'], real_stats['Min'],
+                      real_stats['Max']],
+        'Synthetic Data': [synthetic_stats['Mean'], synthetic_stats['Median'], synthetic_stats['Std Dev'],
+                           synthetic_stats['Min'], synthetic_stats['Max']]
     })
-    
+
     plt.figure(figsize=(14, 8))
 
     # Compute the combined range for x-axis limits across both datasets
@@ -223,7 +233,3 @@ def plot_numerical_feature(feature: str, real_data: pandas.DataFrame, synthetic_
 
     plt.tight_layout()
     plt.show()
-
-
-
-

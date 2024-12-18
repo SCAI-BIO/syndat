@@ -49,8 +49,8 @@ real = pd.read_csv("real.csv")
 synthetic = pd.read_csv("synthetic.csv")
 
 # plot *all* feature distribution and store image files
-syndat.visualization.plot_distributions(real, synthetic, store_destination="results/plots")
-syndat.visualization.plot_correlations(real, synthetic, store_destination="results/plots")
+syndat.visualization.plot_distributions(real, synthetic, img_save_path="results/plots")
+syndat.visualization.plot_correlations(real, synthetic, img_save_path="results/plots")
 
 # plot and display specific feature distribution plot
 syndat.visualization.plot_numerical_feature("feature_xy", real, synthetic)
