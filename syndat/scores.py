@@ -204,8 +204,8 @@ def correlation(real: pd.DataFrame, synthetic: pd.DataFrame, score=True) -> floa
     real_numerical = real_encoded.select_dtypes(include=[np.number])
     synthetic_numerical = synthetic_encoded.select_dtypes(include=[np.number])
     # Compute correlation matrices
-    corr_real = real_numerical.corr()
-    corr_synthetic = synthetic_numerical.corr()
+    corr_real = real_numerical.corr(method='spearman')
+    corr_synthetic = synthetic_numerical.corr(method='spearman')
     # Remove one-hot-encoded categories from one dimension - otherwise we compute correlations within the same column
     # which would distort results
     one_hot_encoded_columns = list(set(real_encoded.columns) - set(real.columns))
