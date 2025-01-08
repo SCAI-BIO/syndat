@@ -203,6 +203,12 @@ def correlation(real: pd.DataFrame, synthetic: pd.DataFrame, score=True) -> floa
     # Compute numerical correlation only
     real_numerical = real_encoded.select_dtypes(include=[np.number])
     synthetic_numerical = synthetic_encoded.select_dtypes(include=[np.number])
+    # Remove constant columns (zero variance)
+    constant_columns = real_numerical.columns[real_numerical.nunique() <= 1]
+    if len(constant_columns) > 0:
+        logger.warning(f'Removing constant columns {constant_columns} for correlation computation.')
+        real_numerical = real_numerical.drop(columns=constant_columns, errors="ignore")
+        synthetic_numerical = synthetic_numerical.drop(columns=constant_columns, errors="ignore")
     # Compute correlation matrices
     corr_real = real_numerical.corr(method='spearman')
     corr_synthetic = synthetic_numerical.corr(method='spearman')
@@ -215,7 +221,8 @@ def correlation(real: pd.DataFrame, synthetic: pd.DataFrame, score=True) -> floa
         corr_real = corr_real.drop(columns=one_hot_encoded_columns)
         corr_synthetic = corr_synthetic.drop(columns=one_hot_encoded_columns)
     # now compute correlation matrices
-    norm_diff = np.linalg.norm(corr_real - corr_synthetic)
+    corr_diff = corr_real - corr_synthetic
+    norm_diff = np.linalg.norm(corr_diff)
     norm_real = np.linalg.norm(corr_real)
     norm_quotient = norm_diff / norm_real
     if score:
