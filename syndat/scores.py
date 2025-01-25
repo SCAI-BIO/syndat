@@ -179,7 +179,7 @@ def distribution(real: pd.DataFrame, synthetic: pd.DataFrame, aggregate_results:
         return int((1 - jsd_aggregated) * 100)
 
 
-def correlation(real: pd.DataFrame, synthetic: pd.DataFrame, score=True) -> float:
+def correlation(real: pd.DataFrame, synthetic: pd.DataFrame, score=True, method='spearman' ) -> float:
     """
     Computes the correlation similarity of real and synthetic data.
 
@@ -210,8 +210,8 @@ def correlation(real: pd.DataFrame, synthetic: pd.DataFrame, score=True) -> floa
         real_numerical = real_numerical.drop(columns=constant_columns, errors="ignore")
         synthetic_numerical = synthetic_numerical.drop(columns=constant_columns, errors="ignore")
     # Compute correlation matrices
-    corr_real = real_numerical.corr(method='spearman')
-    corr_synthetic = synthetic_numerical.corr(method='spearman')
+    corr_real = real_numerical.corr(method=method)
+    corr_synthetic = synthetic_numerical.corr(method=method)
     # Remove one-hot-encoded categories from one dimension - otherwise we compute correlations within the same column
     # which would distort results
     one_hot_encoded_columns = list(set(real_encoded.columns) - set(real.columns))
