@@ -123,6 +123,7 @@ def distribution(real: pd.DataFrame, synthetic: pd.DataFrame, aggregate_results:
     for col in real:
         # Delete empty cells
         real_wo_missing = real[col].dropna()
+        synthetic_wo_missing = synthetic[col].dropna()
         # Check and align data types between real and synthetic data
         col_dtype_real = real[col].dtype
         col_dtype_synthetic = synthetic[col].dtype
@@ -156,7 +157,7 @@ def distribution(real: pd.DataFrame, synthetic: pd.DataFrame, aggregate_results:
             # Handle numerical columns
             n_bins = np.histogram_bin_edges(real_wo_missing, bins='auto')
             real_binned = np.bincount(np.digitize(real_wo_missing, n_bins))
-            synthetic_binned = np.bincount(np.digitize(synthetic[col], n_bins))
+            synthetic_binned = np.bincount(np.digitize(synthetic_wo_missing, n_bins))
         # One array might be shorter than the other; fill missing bins with zero
         if len(real_binned) != len(synthetic_binned):
             padding_size = abs(len(real_binned) - len(synthetic_binned))
