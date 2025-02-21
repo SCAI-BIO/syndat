@@ -1,7 +1,7 @@
 # Syndat
 ![tests](https://github.com/SCAI-BIO/syndat/actions/workflows/tests.yaml/badge.svg) ![docs](https://readthedocs.org/projects/syndat/badge/?version=latest&style=flat) ![version](https://img.shields.io/github/v/release/SCAI-BIO/syndat)
 
-Syndat is a software package that provides basic functionalities for the evaluation and visualizsation of synthetic data. Quality scores can be computed on 3 base metrics (Discrimation, Correlation and Distribution) and data may be visualized to inspect correlation structures or statistical distribution plots.
+Syndat is a software package that provides basic functionalities for the evaluation and visualisation of synthetic data. Quality scores can be computed on 3 base metrics (Discrimation, Correlation and Distribution) and data may be visualized to inspect correlation structures or statistical distribution plots.
 
 # Installation
 
