@@ -1,8 +1,8 @@
-pandas^2.1.4
-numpy^1.26.2
-scipy^1.11.4
-scikit-learn^1.5.1
-matplotlib^3.8.2
-seaborn^0.13.0
-setuptools^70.0.0
-shap^0.42.0
+pandas>=2.1.4,<3.0
+numpy>=1.26.2,<2.0
+scipy>=1.11.4,<2.0
+scikit-learn>=1.5.1,<2.0
+matplotlib>=3.8.2,<4.0
+seaborn>=0.13.0,<1.0
+setuptools>=70.0.0,<71.0
+shap>=0.42.0,<1.0
