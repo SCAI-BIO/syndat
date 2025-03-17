@@ -110,7 +110,7 @@ def plot_shap_discrimination(real: pd.DataFrame, synthetic: pd.DataFrame, save_p
 
     # Plot SHAP summary
     plt.figure()
-    shap.summary_plot(shap_values[1], X_test, show=False)
+    shap.summary_plot(shap_values[:, :, 1], X_test, show=False)
 
     # Save the plot if save_path is specified
     if save_path:
