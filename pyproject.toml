@@ -1,0 +1,43 @@
+[tool.poetry]
+name = "syndat"
+version = "0.0.3"
+description = "A library for evaluation & visualization of synthetic data."
+authors = ["Tim Adams <tim.adams@scai.fraunhofer.de>"]
+readme = "README.md"
+long_description = { file = "README.md" }
+long_description_content_type = "text/markdown"
+license = "MIT"
+keywords = ["synthetic-data", "data-quality", "data-visualization"]
+
+[tool.poetry.dependencies]
+python = ">=3.9"
+pandas = "^2.1.4"
+scikit-learn = "^1.5.1"
+matplotlib = "^3.8.2"
+seaborn = "^0.13.0"
+shap = "^0.42.0"
+numpy = "^1.26.2"
+scipy = "^1.11.4"
+
+[tool.poetry.dev-dependencies]
+pytest = "^8.3.4"
+
+[tool.poetry.classifiers]
+development_status = "3 - Alpha"
+intended_audience = "Developers"
+license = "OSI Approved :: MIT License"
+programming_language = [
+    "Python :: 3",
+    "Python :: 3.9",
+    "Python :: 3.10",
+    "Python :: 3.11",
+]
+
+[tool.poetry.urls]
+documentation = "https://github.com/SCAI-BIO/syndat#readme"
+source = "https://github.com/SCAI-BIO/syndat"
+tracker = "https://github.com/SCAI-BIO/syndat/issues"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
