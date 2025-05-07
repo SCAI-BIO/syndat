@@ -42,8 +42,8 @@ class TestCorrelation(unittest.TestCase):
             'A': [1, 2, 3, 4, 5],
             'B': [5, 4, 3, 2, 1]
         })
-        result = correlation(real_data, synthetic_data, score=False)
-        self.assertEqual(0, result, "Normalized correlation score should be 0 for identical datasets")
+        result = correlation(real_data, synthetic_data)
+        self.assertEqual(100, result, "Normalized correlation score should be 100 for identical datasets")
 
     def test_correlation_with_categorical(self):
         real_data = pd.DataFrame({

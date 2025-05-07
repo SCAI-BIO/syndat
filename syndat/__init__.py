@@ -1,5 +1,5 @@
-from syndat import domain
 from syndat import scores
+from syndat import metrics
 from syndat import visualization
 from syndat import postprocessing
 
@@ -12,8 +12,6 @@ from .visualization import (
 )
 
 from .scores import (
-    auc,
-    jsd,
     discrimination,
     distribution,
     correlation,
@@ -23,7 +21,13 @@ from .postprocessing import (
     normalize_scale,
     normalize_float_precision,
     assert_minmax,
-) 
+)
+
+from .metrics import (
+    jensen_shannon_distance,
+    correlation_quotient,
+    discriminator_auc,
+)
 
 __all__ = [
     # visualization
@@ -32,9 +36,11 @@ __all__ = [
     'plot_shap_discrimination',
     'plot_categorical_feature',
     'plot_numerical_feature',
+    # metrics
+    'jensen_shannon_distance',
+    'correlation_quotient',
+    'discriminator_auc',
     # scores
-    'auc',
-    'jsd',
     'discrimination',
     'distribution',
     'correlation',

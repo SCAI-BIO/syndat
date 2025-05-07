@@ -31,17 +31,6 @@ class Test(unittest.TestCase):
             'feature2': np.random.choice(['X', 'Y'], size=100)
         })
 
-    def preprocess_categorical_data(self, real_data, synthetic_data):
-        # Convert categorical features to one-hot encoding
-        real_data_encoded = pd.get_dummies(real_data)
-        synthetic_data_encoded = pd.get_dummies(synthetic_data)
-
-        # Align the columns
-        real_data_encoded, synthetic_data_encoded = real_data_encoded.align(synthetic_data_encoded, join='left', axis=1,
-                                                                            fill_value=0)
-
-        return real_data_encoded, synthetic_data_encoded
-
     def test_auc_score(self):
         auc_score = syndat.scores.discrimination(self.real_data, self.synthetic_data)
         self.assertTrue(isinstance(auc_score, float))

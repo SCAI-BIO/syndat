@@ -31,7 +31,7 @@ class Test(TestCase):
             'feature2': [0.6, 0.7, 0.8, 0.9, 1.0]
         })
         distribution = syndat.scores.distribution(real, synthetic)
-        self.assertEqual(distribution, 0)
+        self.assertEqual(0, distribution)
 
     def test_jsd_perfect_int64(self):
         synthetic = pd.DataFrame({
@@ -69,7 +69,7 @@ class Test(TestCase):
             'feature1': [1.2, 2.1, 1.1, 2.1, 3.1],
             'feature2': [1, 2, 3, 4, 5]
         })
-        distribution = syndat.scores.distribution(real, synthetic, score=False)
+        distribution = syndat.scores.distribution(real, synthetic)
 
     def test_jsd_negative_int64(self):
         synthetic = pd.DataFrame({

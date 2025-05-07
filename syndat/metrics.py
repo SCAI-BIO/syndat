@@ -87,6 +87,11 @@ def jensen_shannon_distance(real: pd.DataFrame, synthetic: pd.DataFrame,
             synthetic_binned = np.bincount(synthetic_col)
         # Numerical column
         else:
+            # rare edge case: both series are completely disjoint -> JSD is 1
+            if real_col.max() < synthetic_col.min() or synthetic_col.max() < real_col.min():
+                jsd_dict[col] = 1
+                continue
+            # they are not -> compute optimal (joined) bins
             combined = pd.concat([real_col, synthetic_col])
             bins = np.histogram_bin_edges(combined, bins='auto')
             real_binned, _ = np.histogram(real_col, bins=bins)
@@ -104,12 +109,11 @@ def jensen_shannon_distance(real: pd.DataFrame, synthetic: pd.DataFrame,
 def correlation_quotient(real: pd.DataFrame, synthetic: pd.DataFrame,
                          method: Literal['pearson', 'kendall', 'spearman'] = 'spearman') -> float:
     """
-    Computes the correlation similarity of real and synthetic data.
-
-    Filters out rows with categories not present in both datasets, encodes categorical columns,
-    and computes the correlation matrix.
-
-    The goal is to ensure that only comparable data is used in the correlation calculation.
+    Computes the correlation similarity of real and synthetic data by comparing the correlation matrices of both
+    datasets. The score is calculated as the norm quotient of the difference between the correlation matrices of real
+    and synthetic data. This quotient is 0 for equal correlation matrices and 1 for completely different correlation
+    matrices. The norm can in theory exceed 1, in cases of opposing correlation structured (e.g. only negative
+    correlations in the real data, but only positive correlations in the synthetic data).
 
     :param real: The real data.
     :param synthetic: The synthetic data.
