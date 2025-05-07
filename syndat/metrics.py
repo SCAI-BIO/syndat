@@ -1,11 +1,11 @@
 import logging
-from typing import Dict, Literal
 
-import pandas
 import pandas as pd
 import numpy as np
-import scipy.spatial.distance
 
+from typing import Dict, Literal
+
+import scipy
 from sklearn import ensemble
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 from sklearn.preprocessing import OneHotEncoder
@@ -47,8 +47,8 @@ def discriminator_auc(real: pd.DataFrame, synthetic: pd.DataFrame, n_folds: int 
     return auc_score
 
 
-def jensen_shannon_divergence(real: pd.DataFrame, synthetic: pd.DataFrame,
-                              n_unique_threshold: int = 10) -> Dict[str, float]:
+def jensen_shannon_distance(real: pd.DataFrame, synthetic: pd.DataFrame,
+                            n_unique_threshold: int = 10) -> Dict[str, float]:
     """
     Computes the distribution similarity for each feature using the Jensen-Shannon distance between real and
     synthetic datasets.
