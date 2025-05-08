@@ -4,11 +4,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import shap
+
 from pandas.plotting import table
-from sklearn.model_selection import train_test_split  
-from sklearn.ensemble import RandomForestClassifier  
-from sklearn.metrics import roc_auc_score  
-import shap  # Added
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import roc_auc_score
 
 
 def plot_distributions(real: pandas.DataFrame, synthetic: pandas.DataFrame, store_destination: str) -> None:
@@ -68,6 +69,7 @@ def plot_correlations(real: pandas.DataFrame, synthetic: pandas.DataFrame, store
         ax = sns.heatmap(patient_type.corr(), vmin=-1, vmax=1)
         fig = ax.get_figure()
         fig.savefig(store_destination + "/" + names[idx] + '.png', bbox_inches="tight")
+
 
 def plot_shap_discrimination(real: pd.DataFrame, synthetic: pd.DataFrame, save_path: str = None) -> None:
     """
@@ -159,33 +161,26 @@ def plot_categorical_feature(feature: str, real_data: pandas.DataFrame, syntheti
 
 def plot_numerical_feature(feature: str, real_data: pandas.DataFrame, synthetic_data: pandas.DataFrame) -> None:
     """
-    Plots violin plots for a numerical feature from both real and synthetic datasets and displays their summary statistics.
+    Plots violin plots for a numerical feature from both real and synthetic datasets and displays their
+    summary statistics.
 
     :param feature: The feature to be plotted
     :param real_data: The real data
     :param synthetic_data: The synthetic data
     """
     # Calculate summary statistics
-    # Calculate summary statistics
-    def get_summary_stats(data, feature):
-        return {
-            'Mean': data[feature].mean(),
-            'Median': data[feature].median(),
-            'Std Dev': data[feature].std(),
-            'Min': data[feature].min(),
-            'Max': data[feature].max()
-        }
-    
-    real_stats = get_summary_stats(real_data, feature)
-    synthetic_stats = get_summary_stats(synthetic_data, feature)
-    
+    real_stats = __get_summary_stats(real_data, feature)
+    synthetic_stats = __get_summary_stats(synthetic_data, feature)
+
     # Create summary statistics DataFrame
     stats_df = pd.DataFrame({
         'Statistic': ['Mean', 'Median', 'Std Dev', 'Min', 'Max'],
-        'Real Data': [real_stats['Mean'], real_stats['Median'], real_stats['Std Dev'], real_stats['Min'], real_stats['Max']],
-        'Synthetic Data': [synthetic_stats['Mean'], synthetic_stats['Median'], synthetic_stats['Std Dev'], synthetic_stats['Min'], synthetic_stats['Max']]
+        'Real Data': [real_stats['Mean'], real_stats['Median'], real_stats['Std Dev'], real_stats['Min'],
+                      real_stats['Max']],
+        'Synthetic Data': [synthetic_stats['Mean'], synthetic_stats['Median'], synthetic_stats['Std Dev'],
+                           synthetic_stats['Min'], synthetic_stats['Max']]
     })
-    
+
     plt.figure(figsize=(14, 8))
 
     # Compute the combined range for x-axis limits across both datasets
@@ -211,19 +206,25 @@ def plot_numerical_feature(feature: str, real_data: pandas.DataFrame, synthetic_
     # Display summary statistics table
     plt.subplot(2, 1, 2)
     plt.axis('off')
-    table = plt.table(cellText=stats_df.values,
-                      colLabels=stats_df.columns,
-                      rowLabels=stats_df['Statistic'],
-                      cellLoc='center',
-                      loc='center',
-                      bbox=[0.0, -0.5, 1.0, 0.4])
-    table.auto_set_font_size(False)
-    table.set_fontsize(10)
-    table.scale(1.2, 1.2)  # Adjust the size of the table
+    summary_stat_table = plt.table(cellText=stats_df.values,
+                                   colLabels=stats_df.columns,
+                                   rowLabels=stats_df['Statistic'],
+                                   cellLoc='center',
+                                   loc='center',
+                                   bbox=[0.0, -0.5, 1.0, 0.4])
+    summary_stat_table.auto_set_font_size(False)
+    summary_stat_table.set_fontsize(10)
+    summary_stat_table.scale(1.2, 1.2)  # Adjust the size of the table
 
     plt.tight_layout()
     plt.show()
 
 
-
-
+def __get_summary_stats(data: pd.DataFrame, col_name: str):
+    return {
+        'Mean': data[col_name].mean(),
+        'Median': data[col_name].median(),
+        'Std Dev': data[col_name].std(),
+        'Min': data[col_name].min(),
+        'Max': data[col_name].max()
+    }

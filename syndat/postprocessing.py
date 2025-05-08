@@ -1,14 +1,11 @@
 import pandas as pd
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_auc_score
-import matplotlib.pyplot as plt
-import seaborn as sns
+
 
 def normalize_scale(real_df: pd.DataFrame, synthetic_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Scales the columns in the synthetic DataFrame to match the scale (min and max values) of the corresponding columns in the real DataFrame.
+    Scales the columns in the synthetic DataFrame to match the scale (min and max values) of the corresponding columns
+    in the real DataFrame.
 
     Parameters:
     real_df (pd.DataFrame): The real dataset used as the scaling reference.
@@ -27,15 +24,17 @@ def normalize_scale(real_df: pd.DataFrame, synthetic_df: pd.DataFrame) -> pd.Dat
             # Find the min and max values in the real data for this column
             real_min = real_df[column].min()
             real_max = real_df[column].max()
-            
+
             # Find the min and max values in the synthetic data for this column
             synthetic_min = synthetic_df[column].min()
             synthetic_max = synthetic_df[column].max()
-            
+
             # Scale the synthetic data to match the min/max of the real data
-            scaled_synthetic_df[column] = ((synthetic_df[column] - synthetic_min) / (synthetic_max - synthetic_min)) * (real_max - real_min) + real_min
+            scaled_synthetic_df[column] = ((synthetic_df[column] - synthetic_min) / (synthetic_max - synthetic_min)) * (
+                        real_max - real_min) + real_min
 
     return scaled_synthetic_df
+
 
 def assert_minmax(real: pd.DataFrame, synthetic: pd.DataFrame, method: str = 'clip') -> pd.DataFrame:
     """
@@ -52,14 +51,14 @@ def assert_minmax(real: pd.DataFrame, synthetic: pd.DataFrame, method: str = 'cl
     """
     # Normalize -0.0 to 0.0 in synthetic data
     synthetic = synthetic.apply(lambda col: col.map(lambda x: 0.0 if x == -0.0 else x))
-    
+
     # Iterate over each column in the synthetic DataFrame
     for column in synthetic.columns:
         if column in real.columns:
             # Get the min and max of the column in the real data
             min_val = real[column].min()
             max_val = real[column].max()
-            
+
             if method == 'delete':
                 # Filter the synthetic DataFrame to keep only rows within the min-max range
                 synthetic = synthetic[(synthetic[column] >= min_val) & (synthetic[column] <= max_val)]
@@ -68,6 +67,7 @@ def assert_minmax(real: pd.DataFrame, synthetic: pd.DataFrame, method: str = 'cl
                 synthetic[column] = synthetic[column].clip(lower=min_val, upper=max_val)
 
     return synthetic
+
 
 def normalize_float_precision(real: pd.DataFrame, synthetic: pd.DataFrame) -> pd.DataFrame:
     """
@@ -91,17 +91,17 @@ def normalize_float_precision(real: pd.DataFrame, synthetic: pd.DataFrame) -> pd
         if col in synthetic.columns:
             # Get the unique values from the real data column, excluding NaN
             unique_values = real[col].dropna().unique()
-            
+
             # Calculate the differences between the unique sorted values
             unique_diffs = np.diff(np.sort(unique_values))
-            
+
             # If the unique values are all the same, continue to the next column
             if len(unique_diffs) == 0:
                 continue
-            
+
             # Find the smallest non-zero difference (the step size)
             step_size = np.min(unique_diffs[unique_diffs > 0])
-            
+
             # Round the synthetic column to the nearest multiple of the step size
             synthetic[col] = np.round(synthetic[col] / step_size) * step_size
 
