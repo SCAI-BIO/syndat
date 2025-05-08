@@ -13,25 +13,73 @@ pip install syndat
 
 # Usage
 
-## Quality metrics
+## Fidelity metrics
 
-Compute data quality metrics by comparing real and synthetic data in terms of their separation complexity, 
-distribution similarity or pairwise feature correlations:
+### Jenson-Shannon Distance
+
+The Jenson-Shannon distance is a measure of similarity between two probability distributions. In our case, we compute
+probability distributions for each feature in the datasets and compute and can thus compare the statistic feature 
+similarity of two dataframes. 
+
+It is bounded between 0 and 1, with 0 indicating identical distributions. 
+
+### (Normalized) Correlation Difference
+
+In addition to statistical similarity between the same features, we also want to make sure to preserve the correlations
+across different features. The normalized correlation difference measures the similarity of the correlation matrix of 
+two dataframes.
+
+A low correlation difference near zero indicates that the correlation structure of the synthetic data is similar to the 
+real data.
+
+### Discriminator AUC
+
+A classifier is trained to discriminate between real and synthetic data. Based on the Receiver Operating Characteristic 
+(ROC) curve, we compute the area under the curve (AUC) as a measure of how well the classifier can distinguish between 
+the two datasets. 
+
+An AUC of 0.5 indicates that the classifier is unable to distinguish between the two datasets, while an AUC of 1.0 
+indicates perfect discrimination.
+
+Exemplary usage:
 
 ```python
 import pandas as pd
-import syndat
+from syndat.metrics import (
+    jensen_shannon_distance,
+    normalized_correlation_difference,
+    discriminator_auc
+)
 
-real = pd.read_csv("real.csv")
-synthetic = pd.read_csv("synthetic.csv")
+real = pd.DataFrame({
+    'feature1': [1, 2, 3, 4, 5],
+    'feature2': ['A', 'B', 'A', 'B', 'C']
+})
 
-# How similar are the statistical distributions of real and synthetic features 
+synthetic = pd.DataFrame({
+    'feature1': [1, 2, 2, 3, 3],
+    'feature2': ['A', 'B', 'A', 'C', 'C']
+})
+
+print(jensen_shannon_distance(real, synthetic))
+>> {'feature1': 0.4990215421876156, 'feature2': 0.22141025172133794}
+
+print(normalized_correlation_difference(real, synthetic))
+>> 0.24571345029108108
+
+print(discriminator_auc(real, synthetic))
+>> 0.6
+```
+
+### Scoring Functions
+
+For convenience and easier interpretation, a normalized score can be computed for each of the 
+metrics instead:
+
+```python
+# JSD score is being aggregated over all features
 distribution_similarity_score = syndat.scores.distribution(real, synthetic)
-
-# How hard is it for a classifier to discriminate real and synthetic data
 discrimination_score = syndat.scores.discrimination(real, synthetic)
-
-# How well are pairwise feature correlations preserved
 correlation_score = syndat.scores.correlation(real, synthetic)
 ```
 

@@ -106,8 +106,8 @@ def jensen_shannon_distance(real: pd.DataFrame, synthetic: pd.DataFrame,
     return jsd_dict
 
 
-def correlation_quotient(real: pd.DataFrame, synthetic: pd.DataFrame,
-                         method: Literal['pearson', 'kendall', 'spearman'] = 'spearman') -> float:
+def normalized_correlation_difference(real: pd.DataFrame, synthetic: pd.DataFrame,
+                                      method: Literal['pearson', 'kendall', 'spearman'] = 'spearman') -> float:
     """
     Computes the correlation similarity of real and synthetic data by comparing the correlation matrices of both
     datasets. The score is calculated as the norm quotient of the difference between the correlation matrices of real

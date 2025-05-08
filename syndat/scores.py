@@ -54,7 +54,7 @@ def correlation(real: pd.DataFrame, synthetic: pd.DataFrame,
     :param method: The correlation method to use. Options are 'pearson', 'kendall', or 'spearman'.
     :return: Correlation score / Norm Quotient
     """
-    norm_quotient = syndat.metrics.correlation_quotient(real, synthetic, method)
+    norm_quotient = syndat.metrics.normalized_correlation_difference(real, synthetic, method)
     # the norm can exceed 1 in case the correlations are mostly negative for real data, but mostly positive for
     # synthetic data. As this is the worst case scenario, we consider this as having a score of zero
     if norm_quotient > 1:

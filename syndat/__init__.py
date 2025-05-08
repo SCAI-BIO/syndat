@@ -25,7 +25,7 @@ from .postprocessing import (
 
 from .metrics import (
     jensen_shannon_distance,
-    correlation_quotient,
+    normalized_correlation_difference,
     discriminator_auc,
 )
 
@@ -38,7 +38,7 @@ __all__ = [
     'plot_numerical_feature',
     # metrics
     'jensen_shannon_distance',
-    'correlation_quotient',
+    'normalized_correlation_difference',
     'discriminator_auc',
     # scores
     'discrimination',
