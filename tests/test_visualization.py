@@ -27,4 +27,3 @@ class TestPlotShapDiscrimination(unittest.TestCase):
         # Remove the file if it exists after the test
         if os.path.exists(self.save_path):
             os.remove(self.save_path)
-

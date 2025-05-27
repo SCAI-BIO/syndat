@@ -3,6 +3,8 @@
 
 Syndat is a software package that provides basic functionalities for the evaluation and visualisation of synthetic data. Quality scores can be computed on 3 base metrics (Discrimation, Correlation and Distribution) and data may be visualized to inspect correlation structures or statistical distribution plots.
 
+Syndat also allows users to generate stratified and interpretable visualisations, including raincloud plots, GOF plots, and trajectory comparisons, offering deeper insights into the quality of synthetic clinical data across different subgroups.
+
 # Installation
 
 Install via pip:
@@ -125,3 +127,6 @@ synthetic_post = syndat.postprocessing.assert_minmax(real, synthetic)
 synthetic_post = syndat.postprocessing.normalize_float_precision(real, synthetic)
 ```
 
+# Evaluation and Visualization of Synthetic Clinical Trial Data
+
+An example demonstrating how to compute distribution, discrimination, and correlation scores, as well as how to generate stratified visualizations (gof, raincloud and other plots), is available in `examples/rct_example.py`.

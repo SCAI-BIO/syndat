@@ -2,6 +2,8 @@ from syndat import scores
 from syndat import metrics
 from syndat import visualization
 from syndat import postprocessing
+from syndat import preprocessing_tidy_format
+from syndat import visualization_clical_trials
 
 from .visualization import (
     plot_distributions,
@@ -29,6 +31,24 @@ from .metrics import (
     discriminator_auc,
 )
 
+from .preprocessing_tidy_format import (
+    convert_to_syndat_scores,
+    get_rp,
+    convert_long_data_to_tidy,
+    convert_static_data_to_tidy,
+    convert_data_to_tidy
+)
+
+from .visualization_clical_trials import (
+    gof_continuous,
+    gof_continuous_list,
+    gof_binary_list,
+    gof_categorical,
+    gof_categorical_list,
+    assign_visit_absolute,
+    trajectory_plot,
+    trajectory_plot_list
+)
 __all__ = [
     # visualization
     'plot_distributions',
@@ -48,4 +68,19 @@ __all__ = [
     'normalize_scale',
     'normalize_float_precision',
     'assert_minmax',
+    # Preprocessing tidy format
+    'convert_to_syndat_scores',
+    'get_rp',
+    'convert_long_data_to_tidy',
+    'convert_static_data_to_tidy',
+    'convert_data_to_tidy',
+    # visualization clinical trials
+    'gof_continuous',
+    'gof_continuous_list',
+    'gof_binary_list',
+    'gof_categorical',
+    'gof_categorical_list',
+    'assign_visit_absolute',
+    'trajectory_plot',
+    'trajectory_plot_list',
 ]

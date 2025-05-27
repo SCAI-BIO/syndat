@@ -28,6 +28,7 @@ seaborn = "^0.13.0"
 shap = "^0.47.0"
 numpy = ">1.26.2, <3.0.0"
 scipy = "^1.11.4"
+plotnine = "^0.13.6"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
