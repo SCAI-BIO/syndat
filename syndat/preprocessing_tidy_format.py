@@ -96,7 +96,7 @@ def convert_static_data_to_tidy(df0: pd.DataFrame, only_pos: bool = False) -> pd
     df1 = df0.melt(id_vars=["PTNO", "REPI"], 
                    var_name="FullVar", 
                    value_name="DV")
-    df1[["TYPE", "Variable"]] = df1["FullVar"].str.extract(r"^(.*)_(.*)$")
+    df1[["TYPE", "Variable"]] = df1["FullVar"].str.extract(r'([^_]+)_(.*)')
     df1.drop(columns='FullVar', inplace=True)
     if only_pos:
         df1["DV"] = df1["DV"].clip(lower=0)
