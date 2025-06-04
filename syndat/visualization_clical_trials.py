@@ -84,7 +84,6 @@ def gof_continuous_list(
                                 columns="TYPE", values="DV")
                     .reset_index()
                     .dropna(subset=["Observed"]))
-
     gof_list = {}
     for var in rp0['long_cont']:
         plot = gof_continuous(
@@ -124,7 +123,8 @@ def gof_binary_list(
     df = dt[(dt['REPI'] == 1) &
             (dt['TYPE'].isin(["Observed", "Reconstructed"])) &
             (dt['Variable'].isin(rp0['long_bin']))]
-
+    observed_keys = df[df['TYPE'] == 'Observed'][['SUBJID', 'TIME', 'Variable']]
+    df = df.merge(observed_keys.drop_duplicates(), on=['SUBJID', 'TIME', 'Variable'], how='inner')
     plot_data = (df.groupby(['TIME', 'Variable'] + (strat_vars or []))
                    .agg(Observed=('DV', lambda x: 100 * (x[df['TYPE'] == 'Observed'].sum() / len(x))),
                         Reconstructed=('DV', lambda x: 100 * (x[df['TYPE'] == 'Reconstructed'].sum() / len(x))))
@@ -208,7 +208,8 @@ def gof_categorical_list(
     df = dt[(dt['REPI'] == 1) &
             (dt['TYPE'].isin(["Observed", "Reconstructed"])) &
             (dt['Variable'].isin(rp0['long_cat']))]
-
+    observed_keys = df[df['TYPE'] == 'Observed'][['SUBJID', 'TIME', 'Variable']]
+    df = df.merge(observed_keys.drop_duplicates(), on=['SUBJID', 'TIME', 'Variable'], how='inner')
     df = df.loc[:, ["Variable", "DV", "SUBJID", "TIME", "TYPE"] + (strat_vars or [])]
 
     name_ = "perc" if type_ == "Percentage" else "subj"
