@@ -52,6 +52,7 @@ subjid_to_drug = {subjid: f'DRUG {np.random.choice([0, 1])}' for subjid in uniqu
 ldt_dummy = ldt.copy()
 ldt_dummy["DRUG"] = ldt_dummy["SUBJID"].map(subjid_to_drug)
 
+import ipdb; ipdb.set_trace()
 #gof_continuous_list(rp, ldt_dummy, strat_vars=["DRUG"], save_path=results_path)
 #gof_binary_list(rp, ldt_dummy, strat_vars=["DRUG"], save_path=results_path)
 gof_categorical_list(rp, ldt_dummy, strat_vars=["DRUG"], save_path=results_path)

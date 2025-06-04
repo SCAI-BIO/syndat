@@ -47,7 +47,9 @@ from .visualization_clical_trials import (
     gof_categorical_list,
     assign_visit_absolute,
     trajectory_plot,
-    trajectory_plot_list
+    trajectory_plot_list,
+    raincloud_plot,
+    raincloud_continuous_list
 )
 __all__ = [
     # visualization
@@ -83,4 +85,6 @@ __all__ = [
     'assign_visit_absolute',
     'trajectory_plot',
     'trajectory_plot_list',
+    'raincloud_plot',
+    'raincloud_continuous_list'
 ]
