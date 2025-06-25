@@ -50,8 +50,21 @@ def discriminator_auc(real: pd.DataFrame, synthetic: pd.DataFrame, n_folds: int 
 def jensen_shannon_distance(real: pd.DataFrame, synthetic: pd.DataFrame,
                             n_unique_threshold: int = 10) -> Dict[str, float]:
     """
-    Computes the distribution similarity for each feature using the Jensen-Shannon distance between real and
-    synthetic datasets.
+    Computes the Jensen-Shannon distance (JSD) between the distributions of each feature in the real and synthetic datasets.
+
+    The Jensen-Shannon distance is a symmetric and finite measure of similarity between two probability distributions.
+    It ranges from 0 (identical distributions) to 1 (maximally different distributions). This function applies the JSD
+    per column, handling categorical, ordinal, and numerical data differently:
+
+    - For categorical columns, JSD is computed from the frequency counts of each category.
+    - For ordinal columns (integer dtype with unique values below a threshold), JSD is computed from binned counts.
+    - For numerical columns, histograms with automatically determined bins are used to compute JSD.
+    - If distributions are disjoint, the JSD is set to 1.
+
+    :param real: DataFrame containing the real data.
+    :param synthetic: DataFrame containing the synthetic data.
+    :param n_unique_threshold: Maximum number of unique integer values for a column to be treated as ordinal.
+    :return: Dictionary mapping each column name to its Jensen-Shannon distance.
     """
     jsd_dict: Dict[str, float] = {}
     categorical_columns = real.select_dtypes(include=['object', 'category']).columns
