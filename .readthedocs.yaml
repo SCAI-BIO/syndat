@@ -7,7 +7,6 @@ build:
   jobs:
     install:
     - pip install -U poetry
-    - poetry config virtualenvs.create false --local
     - poetry install --no-root --with docs
 
 sphinx:
