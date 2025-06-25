@@ -10,11 +10,6 @@ build:
     install:
       - poetry install --no-root --with docs
 
-python:
-  install:
-    - method: poetry
-      extras: []
-      with: [docs]
-
 sphinx:
   configuration: docs/conf.py
+  
