@@ -9,7 +9,6 @@ build:
       - pip install virtualenv
       - curl -sSL https://install.python-poetry.org | python3 -
       - export PATH="$HOME/.local/bin:$PATH"
-      - which poetry
       - poetry install --no-root --with docs
 
 sphinx:
