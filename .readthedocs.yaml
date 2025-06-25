@@ -5,11 +5,7 @@ build:
   tools:
     python: "3.12"
   jobs:
-    pre_install:
-    - curl -sSL https://install.python-poetry.org | python3 -
-    - export PATH="$HOME/.local/bin:$PATH"
     install:
-    - export PATH="$HOME/.local/bin:$PATH"
     - poetry install --no-root --with docs
 
 sphinx:
