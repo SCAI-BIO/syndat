@@ -45,4 +45,4 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.group.docs.dependencies]
 sphinx = "^7.2"
 sphinx-rtd-theme = "^2.0"
-sphinx-autodoc-typehints = { version = ">=1.22,<3.0 || >=3.2", markers = "python_version >= '3.9'" }
+sphinx-autodoc-typehints = { version = ">=2.0,<3.0", markers = "python_version >= '3.9' and python_version < '3.11'" }
