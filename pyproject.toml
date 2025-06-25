@@ -41,3 +41,8 @@ tracker = "https://github.com/SCAI-BIO/syndat/issues"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "^7.2"
+sphinx-rtd-theme = "^2.0"
+sphinx-autodoc-typehints = { version = ">=1.22,<3.0 || >=3.2", markers = "python_version >= '3.9'" }
