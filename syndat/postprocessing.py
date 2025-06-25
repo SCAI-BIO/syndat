@@ -7,12 +7,9 @@ def normalize_scale(real_df: pd.DataFrame, synthetic_df: pd.DataFrame) -> pd.Dat
     Scales the columns in the synthetic DataFrame to match the scale (min and max values) of the corresponding columns
     in the real DataFrame.
 
-    Parameters:
-    real_df (pd.DataFrame): The real dataset used as the scaling reference.
-    synthetic_df (pd.DataFrame): The synthetic dataset to be scaled.
-
-    Returns:
-    pd.DataFrame: The scaled synthetic dataset with columns adjusted to the real dataset's scale.
+    :param real_df: The real dataset used as the scaling reference.
+    :param synthetic_df: The synthetic dataset to be scaled.
+    :return: The scaled synthetic dataset with columns adjusted to the real dataset's scale.
     """
     # Create a copy of the synthetic dataframe to avoid modifying the original one
     scaled_synthetic_df = synthetic_df.copy()
@@ -41,13 +38,10 @@ def assert_minmax(real: pd.DataFrame, synthetic: pd.DataFrame, method: str = 'cl
     Postprocess the synthetic data by either deleting records that fall outside the min-max range of the real data,
     or adjusting them to fit within the range. Also normalizes -0.0 to 0.0 to avoid plotting issues.
 
-    Parameters:
-    real (pd.DataFrame): The real dataset.
-    synthetic (pd.DataFrame): The synthetic dataset.
-    method (str): The method to apply. 'delete' to remove records, 'clip' to adjust them.
-
-    Returns:
-    pd.DataFrame: The postprocessed synthetic dataset.
+    :param real: The real dataset.
+    :param synthetic: The synthetic dataset.
+    :param method: The method to apply. 'delete' to remove records, 'clip' to adjust them.
+    :return: The postprocessed synthetic dataset.
     """
     # Normalize -0.0 to 0.0 in synthetic data
     synthetic = synthetic.apply(lambda col: col.map(lambda x: 0.0 if x == -0.0 else x))
@@ -77,12 +71,9 @@ def normalize_float_precision(real: pd.DataFrame, synthetic: pd.DataFrame) -> pd
     or step size (e.g., 1.0, 0.5, 0.1) used in those columns. It then rounds the corresponding columns in the 
     synthetic dataset to match this detected precision or step size.
 
-    Parameters:
-    real (pd.DataFrame): The real dataset containing float columns.
-    synthetic (pd.DataFrame): The synthetic dataset that needs to be adjusted to match the precision of the real data.
-
-    Returns:
-    pd.DataFrame: The synthetic dataset with float columns rounded to match the precision or step size of the real data.
+    :param real: The real dataset containing float columns.
+    :param synthetic: The synthetic dataset that needs to be adjusted to match the precision of the real data.
+    :return: The synthetic dataset with float columns rounded to match the precision or step size of the real data.
     """
     # Select float columns from the real dataset
     float_columns = real.select_dtypes(include='float').columns
