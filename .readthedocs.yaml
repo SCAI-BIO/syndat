@@ -7,9 +7,11 @@ build:
 
 python:
   install:
-    - method: poetry
-      path: .
-      extra_requirements: docs
+    - path: .
+      commands:
+        - pip install poetry
+        - poetry config virtualenvs.create false
+        - poetry install --no-root --with docs
 
 sphinx:
   configuration: docs/conf.py
