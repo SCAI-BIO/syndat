@@ -6,7 +6,8 @@ build:
     python: "3.12"
   jobs:
     install:
-    - pip install -U poetry
+    - pip install poetry
+    - poetry config virtualenvs.create false --local
     - poetry install --no-root --with docs
 
 sphinx:
