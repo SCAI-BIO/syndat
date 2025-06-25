@@ -1,3 +1,7 @@
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../syndat'))
+
 project = 'syndat'
 copyright = '2025, Fraunhofer SCAI'
 author = 'Tim Adams'
