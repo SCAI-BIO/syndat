@@ -1,13 +1,11 @@
 version: 2
 
-build:
-  jobs:
-    install:
-      - echo "Installing dependencies..."
-      - pip --version
-      - python --version
-      - poetry --version || echo "Poetry not found yet"
-      - bash -c "curl -sSL https://install.python-poetry.org | python3 - && export PATH=\"$HOME/.local/bin:$PATH\" && poetry install --no-root --with docs"
+python:
+  version: 3.9
+  install:
+    - method: poetry
+      path: .
+      extra_requirements: docs  # if you have extras named docs
 
 sphinx:
   configuration: docs/source/conf.py
