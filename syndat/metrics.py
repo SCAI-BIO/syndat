@@ -124,6 +124,19 @@ def normalized_correlation_difference(real: pd.DataFrame, synthetic: pd.DataFram
     # it is entirely possible that this is not the case. If this happens, we omit this extra category from computation
     # to avoid possible crashes in correlation computation.
     real_filtered, synthetic_filtered = __filter_rows_with_common_categories(real, synthetic)
+    # filter out columns with too few valid combinations -> this can happen when columns have a high missingness and
+    # have less than 2 valid row combinations without missing values
+    real_filtered, synthetic_filtered = __filter_nan_exclusive_combinations(real_filtered, synthetic_filtered)
+    # if columns were excluded from computation, log this
+    if len(real_filtered.columns) != len(real.columns) or len(synthetic_filtered.columns) != len(synthetic.columns):
+        excluded_columns = set(real.columns) - set(real_filtered.columns)
+        logger.warning(f'The following columns were excluded from correlation computation due to insufficient '
+                       f'or invalid combinations: {excluded_columns}. The result should only be interpreted in regards '
+                       f'to the correlations of the remaining columns.')
+    # check if both datatsets contain more than one column after filtering
+    if real_filtered.shape[1] <= 1 or synthetic_filtered.shape[1] <= 1:
+        logger.warning("Not enough columns left for correlation computation after filtering. Returning 0.")
+        return np.nan
     # Encode categorical columns
     real_encoded = __encode_categorical(real_filtered)
     synthetic_encoded = __encode_categorical(synthetic_filtered)
@@ -144,7 +157,8 @@ def normalized_correlation_difference(real: pd.DataFrame, synthetic: pd.DataFram
     one_hot_encoded_columns = list(set(real_encoded.columns) - set(real.columns))
     # beware of special case: only categorical values. In this case we cant drop all columns because the dataframe
     # would be empty afterwards TODO: handle this more gracefully > differentiate between encodings of different cats
-    if not corr_real.drop(columns=one_hot_encoded_columns).empty:
+    existing_columns = [col for col in one_hot_encoded_columns if col in corr_real.columns]
+    if not corr_real.drop(columns=existing_columns).empty:
         corr_real = corr_real.drop(columns=one_hot_encoded_columns)
         corr_synthetic = corr_synthetic.drop(columns=one_hot_encoded_columns)
     # now compute correlation matrices
@@ -153,6 +167,49 @@ def normalized_correlation_difference(real: pd.DataFrame, synthetic: pd.DataFram
     norm_real = np.linalg.norm(corr_real)
     norm_quotient = norm_diff / norm_real
     return norm_quotient
+
+
+def __filter_nan_exclusive_combinations(real: pd.DataFrame, synthetic: pd.DataFrame
+                                        ) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Removes columns from both datasets if they have too few valid combinations with other columns,
+    either in the real or synthetic dataset.
+    """
+    real_invalid = __find_nan_exclusive_combinations(real)
+    synthetic_invalid = __find_nan_exclusive_combinations(synthetic)
+
+    all_invalid = sorted(set(real_invalid).union(synthetic_invalid))
+    if all_invalid:
+        logger.warning(f"Removing columns due to insufficient valid combinations: {all_invalid}")
+        real = real.drop(columns=all_invalid, errors='ignore')
+        synthetic = synthetic.drop(columns=all_invalid, errors='ignore')
+
+    return real, synthetic
+
+
+def __find_nan_exclusive_combinations(df: pd.DataFrame) -> list[str]:
+    """
+    Identifies columns in the DataFrame that have too few valid combinations with other columns.
+    :param df: The dataframe to check for valid combinations.
+    :return: List of column names that should be dropped due to insufficient valid combinations.
+    """
+    sorted_columns = df.isna().sum().sort_values(ascending=False).index.tolist()
+    columns_to_drop = set()
+    for column in sorted_columns:
+        if column in columns_to_drop:
+            continue
+        for other_column in df.columns:
+            if column == other_column or other_column in columns_to_drop:
+                continue
+            valid_combinations = df[[column, other_column]].dropna().shape[0]
+            if valid_combinations < 2:
+                logger.warning(
+                    f'Removing column "{column}" from correlation computation due to insufficient valid combinations '
+                    f'with column "{other_column}".'
+                )
+                columns_to_drop.add(column)
+                break
+    return list(columns_to_drop)
 
 
 def __filter_rows_with_common_categories(real: pd.DataFrame, synthetic: pd.DataFrame) -> (pd.DataFrame, pd.DataFrame):
