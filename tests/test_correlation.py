@@ -1,5 +1,6 @@
 import unittest
 
+import numpy as np
 import pandas as pd
 
 from syndat.scores import correlation
@@ -129,3 +130,51 @@ class TestCorrelation(unittest.TestCase):
         result = correlation(real_data, synthetic_data)
         # Depending on the implementation, the correlation might return NaN or handle it explicitly
         self.assertFalse(pd.isna(result), "Correlation score should not result in NaN even with a constant column")
+
+    def test_correlation_with_sparse_and_tied_data(self):
+        # Simulate high missingness, ties, and categorical NA/"Yes" structure
+        real_data = pd.DataFrame({
+            'cont1': [0, 0, 0, np.nan, np.nan, np.nan, np.nan],  # many ties, few valid
+            'cont2': [1, 2, 1, 2, np.nan, np.nan, np.nan],  # low unique count
+            'yes_na': ['Yes', np.nan, 'Yes', np.nan, np.nan, 'Yes', np.nan],  # binary categorical
+            'group': ['A', 'A', 'B', np.nan, 'C', 'C', 'D'],  # some rare, some missing
+        })
+        synthetic_data = pd.DataFrame({
+            'cont1': [1, 1, 1, 1, 1, 1, 1],  # no missing, all ones
+            'cont2': [1, 1, 1, 1, 1, 1, 1],  # constant column
+            'yes_na': ['Yes', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes'],  # no missing
+            'group': ['A', 'B', 'B', 'C', 'C', 'C', 'C'],  # more balanced group
+        })
+
+        result = correlation(real_data, synthetic_data)
+        self.assertFalse(pd.isna(result), "Correlation score should not return NaN with sparse/tied data")
+        self.assertLessEqual(result, 100, "Score should be between 0 and 100")
+
+    def test_correlation_with_high_missingness_return_nan(self):
+        # Simulate high missingness
+        real_data = pd.DataFrame({
+            'A': [1, 2, np.nan, 4, np.nan],
+            'B': [np.nan, 2, 3, np.nan, 5]
+        })
+        synthetic_data = pd.DataFrame({
+            'A': [1, 2, 3, 4, 5],
+            'B': [5, 4, 3, 2, 1]
+        })
+        result = correlation(real_data, synthetic_data)
+        # result should be nan as only one valid column remains
+        self.assertTrue(pd.isna(result), "Correlation score should return NaN with high missingness")
+
+    def test_correlation_with_high_missingness_successful_filtering(self):
+        real_data = pd.DataFrame({
+            'A': [1, 2, np.nan, 4, np.nan],
+            'B': [np.nan, 2, 3, np.nan, 5],
+            'C': [1, 2, 3, 4, 5]
+        })
+        synthetic_data = pd.DataFrame({
+            'A': [1, 2, 3, 4, 5],
+            'B': [5, 4, 3, 2, 1],
+            'C': [1, 2, 3, 4, 5]
+        })
+        result = correlation(real_data, synthetic_data)
+        self.assertLessEqual(result, 100, "Score should be between 0 and 100")
+
