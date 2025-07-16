@@ -144,11 +144,11 @@ def normalized_correlation_difference(real: pd.DataFrame, synthetic: pd.DataFram
     if len(real_filtered.columns) != len(real.columns) or len(synthetic_filtered.columns) != len(synthetic.columns):
         excluded_columns = set(real.columns) - set(real_filtered.columns)
         logger.warning(f'The following columns were excluded from correlation computation due to insufficient '
-                       f'or invalid combinations: {excluded_columns}. The result should only be interpreted in regards '
-                       f'to the correlations of the remaining columns.')
+                       f'or invalid combinations: {excluded_columns}. \nThe result should only be interpreted with '
+                       f'regards to the correlations of the remaining columns.')
     # check if both datatsets contain more than one column after filtering
     if real_filtered.shape[1] <= 1 or synthetic_filtered.shape[1] <= 1:
-        logger.warning("Not enough columns left for correlation computation after filtering. Returning 0.")
+        logger.warning("Not enough columns left for correlation computation after filtering. Returning nan.")
         return np.nan
     # Encode categorical columns
     real_encoded = __encode_categorical(real_filtered)
@@ -188,21 +188,21 @@ def __filter_nan_exclusive_combinations(real: pd.DataFrame, synthetic: pd.DataFr
     Removes columns from both datasets if they have too few valid combinations with other columns,
     either in the real or synthetic dataset.
     """
-    real_invalid = __find_nan_exclusive_combinations(real)
-    synthetic_invalid = __find_nan_exclusive_combinations(synthetic)
-
+    real_invalid = __find_invalid_column_combinations(real)
+    synthetic_invalid = __find_invalid_column_combinations(synthetic)
     all_invalid = sorted(set(real_invalid).union(synthetic_invalid))
     if all_invalid:
-        logger.warning(f"Removing columns due to insufficient valid combinations: {all_invalid}")
         real = real.drop(columns=all_invalid, errors='ignore')
         synthetic = synthetic.drop(columns=all_invalid, errors='ignore')
-
     return real, synthetic
 
 
-def __find_nan_exclusive_combinations(df: pd.DataFrame) -> list[str]:
+def __find_invalid_column_combinations(df: pd.DataFrame) -> list[str]:
     """
-    Identifies columns in the DataFrame that have too few valid combinations with other columns.
+    Identifies columns in the DataFrame that are result in invalid correlation computations when paired with another
+    column. This may happen either due to:
+    - Too few valid (non-NaN) combinations with another column.
+    - Either column being constant after dropping NaN values for both pairs.
     :param df: The dataframe to check for valid combinations.
     :return: List of column names that should be dropped due to insufficient valid combinations.
     """
@@ -214,13 +214,29 @@ def __find_nan_exclusive_combinations(df: pd.DataFrame) -> list[str]:
         for other_column in df.columns:
             if column == other_column or other_column in columns_to_drop:
                 continue
-            valid_combinations = df[[column, other_column]].dropna().shape[0]
-            if valid_combinations < 2:
+            non_na_combinations = df[[column, other_column]].dropna()
+            if non_na_combinations.shape[0] < 2:
                 logger.warning(
-                    f'Removing column "{column}" from correlation computation due to insufficient valid combinations '
-                    f'with column "{other_column}".'
+                    f'Removing column "{column}" from correlation computation due to insufficient valid (non-nan) '
+                    f'combinations with column "{other_column}".'
                 )
                 columns_to_drop.add(column)
+                break
+            elif non_na_combinations[column].nunique() <= 1 or non_na_combinations[other_column].nunique() <= 1:
+                if non_na_combinations[column].nunique() <= 1:
+                    logger.warning(
+                        f'Removing column "{column}" from correlation computation due to only constant values '
+                        f'(zero-variance) remaining after dropping NaN values in combination with column '
+                        f'"{other_column}".'
+                    )
+                    columns_to_drop.add(column)
+                if non_na_combinations[other_column].nunique() <= 1:
+                    logger.warning(
+                        f'Removing column "{other_column}" from correlation computation due to only constant values '
+                        f'(zero-variance) remaining after dropping NaN values in combination with column '
+                        f'"{column}".'
+                    )
+                    columns_to_drop.add(other_column)
                 break
     return list(columns_to_drop)
 
