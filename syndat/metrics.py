@@ -212,14 +212,16 @@ def __find_invalid_column_combinations(df: pd.DataFrame) -> list[str]:
             elif non_na_combinations[column].nunique() <= 1 or non_na_combinations[other_column].nunique() <= 1:
                 if non_na_combinations[column].nunique() <= 1:
                     logger.warning(
-                        f'Removing column "{column}" from correlation computation due to constant values after dropping '
-                        f'NaN values for column "{other_column}".'
+                        f'Removing column "{column}" from correlation computation due to only constant values '
+                        f'(zero-variance) remaining after dropping NaN values in combination with column '
+                        f'"{other_column}".'
                     )
                     columns_to_drop.add(column)
                 if non_na_combinations[other_column].nunique() <= 1:
                     logger.warning(
-                        f'Removing column "{other_column}" from correlation computation due to constant values after '
-                        f'dropping NaN values for column "{column}".'
+                        f'Removing column "{other_column}" from correlation computation due to only constant values '
+                        f'(zero-variance) remaining after dropping NaN values in combination with column '
+                        f'"{column}".'
                     )
                     columns_to_drop.add(other_column)
                 break
