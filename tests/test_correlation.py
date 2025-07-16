@@ -178,3 +178,18 @@ class TestCorrelation(unittest.TestCase):
         result = correlation(real_data, synthetic_data)
         self.assertLessEqual(result, 100, "Score should be between 0 and 100")
 
+    def test_correlation_constant_combination_after_dropping_nan(self):
+        # Create a DataFrame with constant columns after dropping NaN
+        real_data = pd.DataFrame({
+            'A': [1, 1, 2, 1, 1],
+            'B': [2, 3, np.nan, 5, 6],
+            'C': [1, 2, 1, 1, 1]
+        })
+        synthetic_data = pd.DataFrame({
+            'A': [1, 1, 2, 1, 1],
+            'B': [2, 3, np.nan, 5, 6],
+            'C': [1, 2, 1, 1, 1]
+        })
+        result = correlation(real_data, synthetic_data)
+        self.assertFalse(pd.isna(result), "Correlation score should not result in NaN after dropping NaN values")
+        self.assertEqual(result, 100, "Correlation score should be 100 for identical datasets")
