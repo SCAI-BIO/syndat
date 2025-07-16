@@ -121,14 +121,15 @@ class TestCorrelation(unittest.TestCase):
     def test_correlation_constant_column(self):
         real_data = pd.DataFrame({
             'A': [1, 1, 1, 1, 1],
-            'B': [2, 3, 4, 5, 6]
+            'B': [2, 3, 4, 5, 6],
+            'C': [1, 2, 1, 1, 1]
         })
         synthetic_data = pd.DataFrame({
             'A': [1, 1, 1, 1, 1],
-            'B': [2, 3, 4, 5, 6]
+            'B': [2, 3, 4, 5, 6],
+            'C': [1, 2, 1, 1, 1]
         })
         result = correlation(real_data, synthetic_data)
-        # Depending on the implementation, the correlation might return NaN or handle it explicitly
         self.assertFalse(pd.isna(result), "Correlation score should not result in NaN even with a constant column")
 
     def test_correlation_with_sparse_and_tied_data(self):
@@ -136,14 +137,14 @@ class TestCorrelation(unittest.TestCase):
         real_data = pd.DataFrame({
             'cont1': [0, 0, 0, np.nan, np.nan, np.nan, np.nan],  # many ties, few valid
             'cont2': [1, 2, 1, 2, np.nan, np.nan, np.nan],  # low unique count
-            'yes_na': ['Yes', np.nan, 'Yes', np.nan, np.nan, 'Yes', np.nan],  # binary categorical
+            'yes_na': ['Yes', np.nan, 'No', np.nan, np.nan, 'Yes', np.nan],  # binary categorical
             'group': ['A', 'A', 'B', np.nan, 'C', 'C', 'D'],  # some rare, some missing
         })
         synthetic_data = pd.DataFrame({
-            'cont1': [1, 1, 1, 1, 1, 1, 1],  # no missing, all ones
-            'cont2': [1, 1, 1, 1, 1, 1, 1],  # constant column
-            'yes_na': ['Yes', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes'],  # no missing
-            'group': ['A', 'B', 'B', 'C', 'C', 'C', 'C'],  # more balanced group
+            'cont1': [1, 2, 1, 1, 2, 1, 1],
+            'cont2': [1, 2, 1, 1, 1, 1, 1],
+            'yes_na': ['No', 'No', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes'],
+            'group': ['A', 'B', 'B', 'C', 'C', 'C', 'C'],
         })
 
         result = correlation(real_data, synthetic_data)
