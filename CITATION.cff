@@ -1,0 +1,93 @@
+cff-version: "1.2.0"
+message: "If you use this software, please cite the following publications in your research."
+title: "syndat"
+authors:
+  - family-names: "Adams"
+    given-names: "Tim"
+  - family-names: "Fröhlich"
+    given-names: "Holger"
+date-released: "2024-12-08"
+url: "https://github.com/SCAI-BIO/syndat"
+preferred-citation:
+  type: article
+  authors:
+    - family-names: "Adams"
+      given-names: "Tim"
+    - family-names: "Birkenbihl"
+      given-names: "Colin"
+    - family-names: "Otte"
+      given-names: "Karen"
+    - family-names: "Ng"
+      given-names: "Hwei Geok"
+    - family-names: "Rieling"
+      given-names: "Jonas Adrian"
+    - family-names: "Näher"
+      given-names: "Anatol-Fiete"
+    - family-names: "Sax"
+      given-names: "Ulrich"
+    - family-names: "Prasser"
+      given-names: "Fabian"
+    - family-names: "Fröhlich"
+      given-names: "Holger"
+  title: "On the fidelity versus privacy and utility trade-off of synthetic patient data"
+  year: 2025
+  journal: "iScience"
+  volume: 28
+  issue: 5
+  doi: "10.1016/j.isci.2025.112382"
+references:
+  - id: iScience2025
+    type: article
+    title: "On the fidelity versus privacy and utility trade-off of synthetic patient data"
+    authors:
+      - family-names: "Adams"
+        given-names: "Tim"
+      - family-names: "Birkenbihl"
+        given-names: "Colin"
+      - family-names: "Otte"
+        given-names: "Karen"
+      - family-names: "Ng"
+        given-names: "Hwei Geok"
+      - family-names: "Rieling"
+        given-names: "Jonas Adrian"
+      - family-names: "Näher"
+        given-names: "Anatol-Fiete"
+      - family-names: "Sax"
+        given-names: "Ulrich"
+      - family-names: "Prasser"
+        given-names: "Fabian"
+      - family-names: "Fröhlich"
+        given-names: "Holger"
+    journal: "iScience"
+    year: 2025
+    volume: 28
+    issue: 5
+    doi: "10.1016/j.isci.2025.112382"
+    url: "https://doi.org/10.1016/j.isci.2025.112382"
+  - id: SHTI2024
+    type: article
+    title: "NFDI4Health Workflow and Service for Synthetic Data Generation, Assessment and Risk Management"
+    authors:
+      - family-names: "Moazemi"
+        given-names: "Sobhan"
+      - family-names: "Adams"
+        given-names: "Tim"
+      - family-names: "Ng"
+        given-names: "Hwei Geok"
+      - family-names: "Kühnel"
+        given-names: "Lisa"
+      - family-names: "Schneider"
+        given-names: "Julian"
+      - family-names: "Näher"
+        given-names: "Anatol-Fiete"
+      - family-names: "Fluck"
+        given-names: "Juliane"
+      - family-names: "Fröhlich"
+        given-names: "Holger"
+    journal: "Studies in health technology and informatics"
+    year: 2024
+    volume: 317
+    start: 21
+    end: 29
+    doi: "10.3233/SHTI240834"
+    url: "https://doi.org/10.3233/SHTI240834"
