@@ -32,6 +32,7 @@ plotnine = "^0.13.6"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
+pytest-cov = "^6.2.1"
 
 [tool.poetry.urls]
 documentation = "https://github.com/SCAI-BIO/syndat#readme"
