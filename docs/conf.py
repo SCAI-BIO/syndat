@@ -1,35 +1,34 @@
-# Configuration file for the Sphinx documentation builder.
+import os
+import sys
+import subprocess
 
-# -- Project information
+sys.path.insert(0, os.path.abspath('..'))
 
-project = 'Syndat'
-copyright = '2024, Fraunhofer SCAI'
+project = 'syndat'
+copyright = '2025, Fraunhofer SCAI'
 author = 'Tim Adams'
 
-release = '0.1'
-version = '0.1.0'
-
-# -- General configuration
-
 extensions = [
-    'sphinx.ext.duration',
-    'sphinx.ext.doctest',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.intersphinx',
+    "sphinx.ext.autodoc",
+    "sphinx_autodoc_typehints",
+    "sphinx.ext.napoleon",
 ]
 
-intersphinx_mapping = {
-    'python': ('https://docs.python.org/3/', None),
-    'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
-}
-intersphinx_disabled_domains = ['std']
-
 templates_path = ['_templates']
+exclude_patterns = []
 
-# -- Options for HTML output
+html_theme = "sphinx_rtd_theme"
 
-html_theme = 'sphinx_rtd_theme'
+def get_version_from_git():
+    try:
+        tag = subprocess.check_output(
+            ["git", "describe", "--tags", "--match", "v*.*.*", "--abbrev=0"]
+        ).decode().strip()
+        if tag.startswith('v'):
+            return tag[1:]
+        return tag
+    except Exception:
+        return "latest"
 
-# -- Options for EPUB output
-epub_show_urls = 'footnote'
+release = get_version_from_git()
+version = release  
