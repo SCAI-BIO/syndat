@@ -119,8 +119,9 @@ def plot_shap_discrimination(real: pd.DataFrame, synthetic: pd.DataFrame, save_p
         plt.savefig(save_path, bbox_inches='tight')
         print(f"Plot saved to {save_path}")
 
-    # Show the plot
-    plt.show()
+    else:
+        # Show the plot
+        plt.show()
 
 
 def plot_categorical_feature(feature: str, real_data: pandas.DataFrame, synthetic_data: pandas.DataFrame) -> None:
