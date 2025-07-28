@@ -133,16 +133,28 @@ def normalized_correlation_difference(real: pd.DataFrame, synthetic: pd.DataFram
     :param method: The method to use for correlation computation. Either of "pearson", "kendall" or "spearman".
     :return: correlation quotient
     """
+    # check if both datasets have the same columns
+    if set(real.columns) != set(synthetic.columns):
+        excluded_columns = list((set(real.columns) ^ set(synthetic.columns)))
+        common_cols = list(set(real.columns) & set(synthetic.columns))
+        logger.warning(f"Excluding columns from correlation computation that are not present in both datasets: "
+                       f"\n {excluded_columns}.")
+        real_common_cols = real[common_cols]
+        synthetic_common_cols = synthetic[common_cols]
+    else:
+        real_common_cols = real
+        synthetic_common_cols = synthetic
+    # filter out rows with categories that are not present in both datasets
     # why do we do this? while it is expected that categorical columns of both data sets contain the same categories,
     # it is entirely possible that this is not the case. If this happens, we omit this extra category from computation
     # to avoid possible crashes in correlation computation.
-    real_filtered, synthetic_filtered = __filter_rows_with_common_categories(real, synthetic)
+    real_filtered, synthetic_filtered = __filter_rows_with_common_categories(real_common_cols, synthetic_common_cols)
     # filter out columns with too few valid combinations -> this can happen when columns have a high missingness and
     # have less than 2 valid row combinations without missing values
     real_filtered, synthetic_filtered = __filter_nan_exclusive_combinations(real_filtered, synthetic_filtered)
     # if columns were excluded from computation, log this
-    if len(real_filtered.columns) != len(real.columns) or len(synthetic_filtered.columns) != len(synthetic.columns):
-        excluded_columns = set(real.columns) - set(real_filtered.columns)
+    if len(real_filtered.columns) != len(real_common_cols.columns) or len(synthetic_filtered.columns) != len(synthetic_common_cols.columns):
+        excluded_columns = list(set(real.columns) - set(real_filtered.columns))
         logger.warning(f'The following columns were excluded from correlation computation due to insufficient '
                        f'or invalid combinations: {excluded_columns}. \nThe result should only be interpreted with '
                        f'regards to the correlations of the remaining columns.')
@@ -167,7 +179,7 @@ def normalized_correlation_difference(real: pd.DataFrame, synthetic: pd.DataFram
     corr_synthetic = synthetic_numerical.corr(method=method)
     # Remove one-hot-encoded categories from one dimension - otherwise we compute correlations within the same column
     # which would distort results
-    one_hot_encoded_columns = list(set(real_encoded.columns) - set(real.columns))
+    one_hot_encoded_columns = list(set(real_encoded.columns) - set(real_common_cols.columns))
     # beware of special case: only categorical values. In this case we cant drop all columns because the dataframe
     # would be empty afterwards TODO: handle this more gracefully > differentiate between encodings of different cats
     existing_columns = [col for col in one_hot_encoded_columns if col in corr_real.columns]

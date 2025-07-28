@@ -194,3 +194,21 @@ class TestCorrelation(unittest.TestCase):
         result = correlation(real_data, synthetic_data)
         self.assertFalse(pd.isna(result), "Correlation score should not result in NaN after dropping NaN values")
         self.assertEqual(result, 100, "Correlation score should be 100 for identical datasets")
+
+
+    def test_synthetic_data_extra_column(self):
+        real_data = pd.DataFrame({
+            'A': [1, 2, 3, 4, 5],
+            'B': [5, 4, 3, 2, 1],
+            'C': [10, 20, 30, 40, 50]
+        })
+        synthetic_data = pd.DataFrame({
+            'A': [1, 2, 3, 4, 5],
+            'B': [5, 4, 3, 2, 1],
+            'C': [10, 20, 30, 40, 50],
+            'D': [100, 200, 300, 400, 500]  # not in real
+        })
+        result = correlation(real_data, synthetic_data)
+        self.assertEqual(result, 100,
+                         "Correlation score should be calculated based on matching columns only and should be "
+                         "100 for identical datasets with an extra column in synthetic data")
