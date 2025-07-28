@@ -120,7 +120,9 @@ def gof_binary_list(
     :return: Dictionary mapping each variable name to its ggplot object.
     """
 
-    df = dt[(dt['REPI'] == 1) &
+    print("This plot applies only to binary endpoints and illustrates the calibration" \
+          "of the percentage of subjects who achieved the outcome value 1 (e.g., responders).")
+    df = dt[(dt["REPI"] == 1) &
             (dt['TYPE'].isin(["Observed", "Reconstructed"])) &
             (dt['Variable'].isin(rp0['long_bin']))]
     observed_keys = df[df['TYPE'] == 'Observed'][['SUBJID', 'TIME', 'Variable']]
@@ -147,7 +149,7 @@ def gof_binary_list(
             print(plot)
     return gof_list
 
-def gof_categorical(
+def bar_categorical(
     plt_dt: pd.DataFrame,
     var_name: str,
     type_: str,
@@ -164,8 +166,30 @@ def gof_categorical(
     df = (plt_dt.groupby(['DV', 'TYPE'] + (strat_vars or []))
                 .size()
                 .reset_index(name='N'))
-
     df['PERC'] = df['N'] / df.groupby(['TYPE'] + (strat_vars or []))['N'].transform('sum') * 100
+
+    if strat_vars:
+        group_cols = ['DV', 'TYPE'] + strat_vars
+        df_grouped = df.groupby(group_cols, as_index=False).sum()
+ 
+        dv_vals = sorted(df_grouped['DV'].unique())
+        type_vals = sorted(df_grouped['TYPE'].unique())
+ 
+        strat_vals = sorted(df[strat_vars[0]].unique())
+        full_index = pd.MultiIndex.from_product(
+            [dv_vals, type_vals, strat_vals],
+            names=['DV', 'TYPE'] + strat_vars
+        )
+        df = df_grouped.set_index(group_cols).reindex(full_index, fill_value=0).reset_index()
+    else:
+        all_dv = df['DV'].unique()
+        all_types = df['TYPE'].unique()
+ 
+        full_index = pd.MultiIndex.from_product(
+            [all_dv, all_types], names=['DV', 'TYPE']
+        )
+ 
+        df = df.set_index(['DV', 'TYPE']).reindex(full_index, fill_value=0).reset_index()
 
     if type_ == "Percentage":
         p = (ggplot(df, aes(x='DV', y='PERC', fill='TYPE')) +
@@ -188,9 +212,10 @@ def gof_categorical(
 
     return p
 
-def gof_categorical_list(
+def bar_categorical_list(
     rp0: dict,
     dt: pd.DataFrame,
+    dt_cs: Optional[pd.DataFrame] = None,
     type_: str = "Percentage",
     strat_vars: Optional[List[str]] = None,
     save_path: Optional[str] = None) -> Dict[str, ggplot]:
@@ -205,17 +230,32 @@ def gof_categorical_list(
     :return: Dictionary of ggplot objects keyed by variable name.
     """
 
-    df = dt[(dt['REPI'] == 1) &
+    if dt_cs is not None:
+        if type_ != "Percentage":
+            raise ValueError("When 'dt_cs' is provided, 'type_' must be 'Percentage' to allow comparison.")
+
+    df = dt[(dt["REPI"] == 1) &
             (dt['TYPE'].isin(["Observed", "Reconstructed"])) &
             (dt['Variable'].isin(rp0['long_cat']))]
     observed_keys = df[df['TYPE'] == 'Observed'][['SUBJID', 'TIME', 'Variable']]
     df = df.merge(observed_keys.drop_duplicates(), on=['SUBJID', 'TIME', 'Variable'], how='inner')
     df = df.loc[:, ["Variable", "DV", "SUBJID", "TIME", "TYPE"] + (strat_vars or [])]
 
+    if dt_cs is not None:
+        dt_cs = (dt_cs[(dt_cs["REPI"] == 1) &
+                (dt_cs['TYPE'].isin(["Reconstructed"])) &
+                (dt_cs['Variable'].isin(rp0['long_cat']))]
+                .assign(TYPE="Counterfactual")
+                .merge(observed_keys.drop(columns=["SUBJID"]).drop_duplicates(), on=["TIME", "Variable"], how="inner")
+                .reset_index())    
+        dt_cs = dt_cs.loc[:, ["Variable", "DV", "SUBJID", "TIME", "TYPE"] + (strat_vars or [])]
+        df = pd.concat([df, dt_cs])
+
     name_ = "perc" if type_ == "Percentage" else "subj"
+    cs_name = "counterfactual_" if dt_cs is not None else ""
     gof_list = {}
     for var in rp0['long_cat']:
-        plot = gof_categorical(
+        plot = bar_categorical(
             plt_dt=df[df['Variable'] == var],
             var_name=var,
             type_=type_,
@@ -224,7 +264,7 @@ def gof_categorical_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_gof_cat_%s_plot.png'%(var,name_))
+            filename = os.path.join(save_path, '%s_%sgof_cat_%s_plot.png'%(var,cs_name,name_))
             plot.save(filename=filename, width=8, height=6, dpi=300)
         else:
             print(plot)
@@ -294,13 +334,16 @@ def trajectory_plot_list(
     :param save_path: Optional path to save plots. If None, plots are printed to console.
     :return: Dictionary of ggplot objects keyed by variable name.
     """
+    if mode not in ["Reconstructed", "Simulations"]:
+        raise ValueError(f"`mode` must be either 'Reconstructed' or 'Simulations', got '{mode}'")
 
     if bins is None:
+        print("No bins were given. Using all time points")
         bins = dt['TIME'].unique()
     strat_vars = strat_vars or []
     dt['Visit'] = assign_visit_absolute(dt['TIME'], bins)
 
-    plot_data = (dt[(dt['REPI'] == 1) & 
+    plot_data = (dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) & 
                     (dt['TYPE'].isin(["Observed", mode])) & 
                     (dt['Variable'].isin(rp0['long_cont']))]
                     .groupby(strat_vars + ['Variable', 'TYPE', 'Visit'])
@@ -309,13 +352,16 @@ def trajectory_plot_list(
 
     if dt_cs is not None:
         dt_cs['Visit'] = assign_visit_absolute(dt_cs['TIME'], bins)
-        plot_data_cs = (dt_cs[dt_cs['TYPE'] == mode]
-                        .assign(TYPE='Counterfactual')
-                        .groupby(strat_vars + ['Variable', 'TYPE', 'Visit'])
-                        .agg(med=('DV', 'median'), p5=('DV', lambda x: np.percentile(x, 5)), p95=('DV', lambda x: np.percentile(x, 95)))
-                        .reset_index())
+        plot_data_cs = (dt_cs[(dt_cs["REPI"] == 1 if mode == "Reconstructed" else True) & 
+                    (dt_cs['TYPE'].isin([mode])) & 
+                    (dt_cs['Variable'].isin(rp0['long_cont']))]
+                    .assign(TYPE="Counterfactual")
+                    .groupby(strat_vars + ['Variable', 'TYPE', 'Visit'])
+                    .agg(med=('DV', 'median'), p5=('DV', lambda x: np.percentile(x, 5)), p95=('DV', lambda x: np.percentile(x, 95)))
+                    .reset_index())
         plot_data = pd.concat([plot_data, plot_data_cs])
 
+    cs_name = "counterfactual_" if dt_cs is not None else ""
     plot_list = {}
     for var in rp0['long_cont']:
         plot = trajectory_plot(plot_data[plot_data['Variable'] == var], var, strat_vars)
@@ -323,7 +369,7 @@ def trajectory_plot_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_trajectory_plot.png'%(var))
+            filename = os.path.join(save_path, '%s_%strajectory_plot.png'%(var,cs_name))
             plot.save(filename=filename, width=8, height=6, dpi=300)
         else:
             print(plot)

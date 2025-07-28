@@ -1,4 +1,5 @@
 import pandas as pd
+from typing import Optional
 
 def convert_to_syndat_scores(
     df: pd.DataFrame,
@@ -29,8 +30,8 @@ def convert_to_syndat_scores(
 
 def get_rp(
     ldt: pd.DataFrame,
-    lt: pd.DataFrame,
-    st: pd.DataFrame) -> dict:
+    lt: Optional[pd.DataFrame] = None,
+    st: Optional[pd.DataFrame] = None) -> dict:
     """
     Creates a dictionary with static and longitudinal variable names categorized by type (categorical, continuous),
     and computes the maximum time value.
@@ -41,18 +42,31 @@ def get_rp(
     :return: Dictionary with keys: 'Tmax', 'static_vnames', 'static_cat', 'static_cont',
              'long_vnames', 'long_cat', 'long_bin', 'long_cont', each mapping to lists of variable names.
     """
+
+    if lt is None and st is None:
+        raise ValueError("At least one of 'lt' or 'st' must be provided.")
+
     rp = {}
     rp['Tmax'] = ldt.TIME.max()
 
-    rp["static_vnames"] = st["Variable"].dropna().unique().tolist()
-    rp["static_cat"] = st[st["Type"] == "cat"]["Variable"].dropna().unique().tolist()
-    rp["static_cont"] = st[st["Type"] != "cat"]["Variable"].dropna().unique().tolist()
+    if st is not None:
+        rp["static_vnames"] = st["Variable"].dropna().unique().tolist()
+        rp["static_cat"] = st[st["Type"] == "cat"]["Variable"].dropna().unique().tolist()
+        rp["static_cont"] = st[st["Type"] != "cat"]["Variable"].dropna().unique().tolist()
+    else:
+        rp["static_vnames"] = []
+        rp["static_cat"] = []
+        rp["static_cont"] = []
 
-    rp["long_vnames"] = lt["Variable"].dropna().unique().tolist()
-    rp["long_cat"] = lt[lt["Type"] == "cat"]["Variable"].dropna().unique().tolist()
-    rp["long_bin"] = lt[(lt["Type"] == "cat") & (lt["Cats"] == 2)]["Variable"].dropna().unique().tolist()
-    rp["long_cont"] = lt[lt["Type"] != "cat"]["Variable"].dropna().unique().tolist()
-
+    if lt is not None:
+        rp["long_vnames"] = lt["Variable"].dropna().unique().tolist()
+        rp["long_cat"] = lt[lt["Type"] == "cat"]["Variable"].dropna().unique().tolist()
+        rp["long_bin"] = lt[(lt["Type"] == "cat") & (lt["Cats"] == 2)]["Variable"].dropna().unique().tolist()
+        rp["long_cont"] = lt[lt["Type"] != "cat"]["Variable"].dropna().unique().tolist()
+    else:
+        rp["static_vnames"] = []
+        rp["static_cat"] = []
+        rp["static_cont"] = []
     return rp
 
 def convert_long_data_to_tidy(df0: pd.DataFrame, only_pos: bool = False) -> pd.DataFrame:
@@ -64,9 +78,13 @@ def convert_long_data_to_tidy(df0: pd.DataFrame, only_pos: bool = False) -> pd.D
     :param only_pos: If True, clips negative values in the 'DV' column to zero.
     :return: A tidy-format DataFrame with columns: 'SUBJID', 'REPI', 'TIME', 'DRUG', 'TYPE', 'Variable', 'DV', and 'MASK'.
     """
+
+    if "DRUG" not in df0.columns:
+        print("Column 'DRUG' not found — adding it with zeros for library compatibility.")
+        df0["DRUG"] = 0
+
     df1 = df0.melt(id_vars=["PTNO", "REPI", "TIME", "DRUG"], 
                    var_name="FullVar", value_name="DV")
-    
     df1[['TYPE', 'Variable']] = df1['FullVar'].str.extract(r'([^_]+)_(.*)')
     df1.drop(columns='FullVar', inplace=True)
     df1["TIME2"] = (df1["TIME"] * 1_000_000).round().astype(int)
