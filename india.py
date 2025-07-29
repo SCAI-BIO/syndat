@@ -66,5 +66,7 @@ pbo = ldt[ldt.DRUG==0]
 dt_cs = ldt[ldt.DRUG==1]
 dt_cs["DRUG"] = 0
 
-bar_categorical_list(rp_Enc0, pbo, dt_cs=dt_cs, type_='Percentage', strat_vars=["DRUG"], save_path=fold_path)
+bar_categorical_list(rp_Enc0, pbo, type_='Percentage', dt_cs=dt_cs, strat_vars=["TIME"], save_path=fold_path)
+import ipdb; ipdb.set_trace()
+bar_categorical_list(rp_Enc0, pbo, type_='Percentage', dt_cs=dt_cs, strat_vars=["DRUG"], save_path=fold_path)
 trajectory_plot_list(rp_Enc0, pbo, dt_cs=dt_cs, strat_vars=["DRUG"], bins=bins, save_path=fold_path)

@@ -62,7 +62,10 @@ def gof_continuous_list(
     dt: pd.DataFrame,
     strat_vars: Optional[List[str]] = None,
     log_trans: bool = False,
-    save_path: Optional[str] = None) -> Dict[str, ggplot]:
+    save_path: Optional[str] = None,
+    width: Optional[int] = 8,
+    height: Optional[int] = 6,
+    dpi: Optional[int] = 300) -> Dict[str, ggplot]:
     """
     Creates a dictionary of goodness-of-fit (GOF) plots for a list of continuous variables.
     Saves or displays each plot depending on whether a path is provided.
@@ -74,6 +77,9 @@ def gof_continuous_list(
     :param log_trans: If True, applies log10 transformation to both axes in the plots.
     :param save_path: Optional path to a folder. If provided, saves each plot as a PNG file.
                       If not provided, plots will be shown interactively.
+    :param width: Width of the saved plot in inches (used only if save_path is provided).
+    :param height: Height of the saved plot in inches (used only if save_path is provided).
+    :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
     :return: A dictionary where keys are variable names and values are ggplot GOF plots.
     """
     plot_data = (dt[(dt['REPI'] == 1) &
@@ -97,7 +103,7 @@ def gof_continuous_list(
         if save_path:
             os.makedirs(save_path, exist_ok=True)
             filename = os.path.join(save_path, '%s_gof_plot.png'%(var))
-            plot.save(filename=filename, width=8, height=6, dpi=300)
+            plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
     return gof_list
@@ -106,7 +112,10 @@ def gof_binary_list(
     rp0: dict,
     dt: pd.DataFrame,
     strat_vars: Optional[List[str]] = None,
-    save_path: Optional[str] = None) -> Dict[str, ggplot]:
+    save_path: Optional[str] = None,
+    width: Optional[int] = 8,
+    height: Optional[int] = 6,
+    dpi: Optional[int] = 300) -> Dict[str, ggplot]:
     """
     Creates goodness-of-fit plots for binary variables by comparing the proportion
     of observed vs. reconstructed outcomes over time (in %).
@@ -117,6 +126,9 @@ def gof_binary_list(
     :param strat_vars: Optional list of column names for stratified (faceted) plots.
     :param save_path: Optional path to a folder. If provided, saves each plot as a PNG.
                       If not provided, plots will be shown interactively.
+    :param width: Width of the saved plot in inches (used only if save_path is provided).
+    :param height: Height of the saved plot in inches (used only if save_path is provided).
+    :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
     :return: Dictionary mapping each variable name to its ggplot object.
     """
 
@@ -144,7 +156,7 @@ def gof_binary_list(
         if save_path:
             os.makedirs(save_path, exist_ok=True)
             filename = os.path.join(save_path, '%s_gof_bin_plot.png'%(var))
-            plot.save(filename=filename, width=8, height=6, dpi=300)
+            plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
     return gof_list
@@ -153,7 +165,8 @@ def bar_categorical(
     plt_dt: pd.DataFrame,
     var_name: str,
     type_: str,
-    strat_vars: Optional[List[str]] = None) -> ggplot:
+    strat_vars: Optional[List[str]] = None,
+    facet_time: bool = False) -> ggplot:
     """
     Generates a bar chart for a categorical variable comparing observed vs reconstructed distributions.
 
@@ -161,8 +174,11 @@ def bar_categorical(
     :param var_name: Name of the variable to use as title.
     :param type_: "Percentage" or "Subjects" to define the bar heights.
     :param strat_vars: Optional list of variables to use for facetting.
+    :param facet_time: If True, facets the plot by TIME (assumes 'TIME' column is present).
     :return: ggplot object.
     """
+    plt_dt = plt_dt.loc[:, ~plt_dt.columns.duplicated()]
+    import ipdb; ipdb.set_trace()
     df = (plt_dt.groupby(['DV', 'TYPE'] + (strat_vars or []))
                 .size()
                 .reset_index(name='N'))
@@ -215,18 +231,27 @@ def bar_categorical(
 def bar_categorical_list(
     rp0: dict,
     dt: pd.DataFrame,
-    dt_cs: Optional[pd.DataFrame] = None,
     type_: str = "Percentage",
+    dt_cs: Optional[pd.DataFrame] = None,
     strat_vars: Optional[List[str]] = None,
-    save_path: Optional[str] = None) -> Dict[str, ggplot]:
+    per_timepoint: bool = False,
+    save_path: Optional[str] = None,
+    width: Optional[int] = 8,
+    height: Optional[int] = 6,
+    dpi: Optional[int] = 300) -> Dict[str, ggplot]:
     """
     Generates and optionally saves bar plots for all categorical variables listed in rp0['long_cat'].
 
     :param rp0: Dictionary with a key 'long_cat' containing a list of categorical variable names.
     :param dt: DataFrame with the columns 'REPI', 'TYPE', 'Variable', 'DV', 'SUBJID', 'TIME' and optionally others.
     :param type_: "Percentage" or "Subjects" to define the bar heights.
+    :param dt_cs: Optional counterfactual DataFrame with TYPE='Counterfactual'.
     :param strat_vars: Optional list of variables to use for facetting.
+    :param per_timepoint: If True, facets plots by TIME using the 'TIME' column.
     :param save_path: Optional path to folder where plots should be saved. If not provided, plots are shown.
+    :param width: Width of the saved plot in inches (used only if save_path is provided).
+    :param height: Height of the saved plot in inches (used only if save_path is provided).
+    :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
     :return: Dictionary of ggplot objects keyed by variable name.
     """
 
@@ -259,13 +284,14 @@ def bar_categorical_list(
             plt_dt=df[df['Variable'] == var],
             var_name=var,
             type_=type_,
-            strat_vars=strat_vars)
+            strat_vars=strat_vars,
+            facet_time=per_timepoint)
         gof_list[var] = plot
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_%sgof_cat_%s_plot.png'%(var,cs_name,name_))
-            plot.save(filename=filename, width=8, height=6, dpi=300)
+            filename = os.path.join(save_path, '%s_%sbar_cat_%s_plot.png'%(var,cs_name,name_))
+            plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
     return gof_list
@@ -321,7 +347,10 @@ def trajectory_plot_list(
     dt_cs: Optional[pd.DataFrame] = None,
     mode: str = "Reconstructed",
     strat_vars: Optional[List[str]] = None,
-    save_path: Optional[str] = None) -> Dict[str, ggplot]:
+    save_path: Optional[str] = None,
+    width: Optional[int] = 8,
+    height: Optional[int] = 6,
+    dpi: Optional[int] = 300) -> Dict[str, ggplot]:
     """
     Generates and optionally saves ribbon plots for continuous variables across visits.
 
@@ -332,6 +361,9 @@ def trajectory_plot_list(
     :param mode: String, usually "Reconstructed", used for filtering TYPE.
     :param strat_vars: Optional list of stratification variables for facetting.
     :param save_path: Optional path to save plots. If None, plots are printed to console.
+    :param width: Width of the saved plot in inches (used only if save_path is provided).
+    :param height: Height of the saved plot in inches (used only if save_path is provided).
+    :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
     :return: Dictionary of ggplot objects keyed by variable name.
     """
     if mode not in ["Reconstructed", "Simulations"]:
@@ -370,7 +402,7 @@ def trajectory_plot_list(
         if save_path:
             os.makedirs(save_path, exist_ok=True)
             filename = os.path.join(save_path, '%s_%strajectory_plot.png'%(var,cs_name))
-            plot.save(filename=filename, width=8, height=6, dpi=300)
+            plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
 
@@ -423,7 +455,10 @@ def raincloud_continuous_list(
     dt: pd.DataFrame,
     type: str = "longitudinal",
     strat_vars: Optional[List[str]] = None,
-    save_path: Optional[str] = None) -> Dict[str, ggplot]:
+    save_path: Optional[str] = None,
+    width: Optional[int] = 8,
+    height: Optional[int] = 6,
+    dpi: Optional[int] = 300) -> Dict[str, ggplot]:
 
     """
     Generates and optionally saves raincloud plots for continuous observed vs reconstructed variables
@@ -433,6 +468,9 @@ def raincloud_continuous_list(
     :param type_: "longitudinal" or "static" to define the type of variable to plot.
     :param strat_vars: Optional list of variables to use for facetting.
     :param save_path: Optional path to folder where plots should be saved. If not provided, plots are shown.
+    :param width: Width of the saved plot in inches (used only if save_path is provided).
+    :param height: Height of the saved plot in inches (used only if save_path is provided).
+    :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
     :return: Dictionary of ggplot objects keyed by variable name.
     """
 
@@ -461,7 +499,7 @@ def raincloud_continuous_list(
             if save_path:
                 os.makedirs(save_path, exist_ok=True)
                 filename = os.path.join(save_path, '%s_raincloud_plot.png'%(var))
-                plot.save(filename=filename, width=8, height=6, dpi=300)
+                plot.save(filename=filename, width=width, height=height, dpi=dpi)
             else:
                 print(plot)
 
@@ -490,7 +528,7 @@ def raincloud_continuous_list(
             if save_path:
                 os.makedirs(save_path, exist_ok=True)
                 filename = os.path.join(save_path, '%s_raincloud_plot.png'%(var))
-                plot.save(filename=filename, width=8, height=6, dpi=300)
+                plot.save(filename=filename, width=width, height=height, dpi=dpi)
             else:
                 print(plot)
 
