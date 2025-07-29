@@ -117,8 +117,8 @@ def gof_binary_list(
     height: Optional[int] = 6,
     dpi: Optional[int] = 300) -> Dict[str, ggplot]:
     """
-    Creates goodness-of-fit plots for binary variables by comparing the proportion
-    of observed vs. reconstructed outcomes over time (in %).
+    Creates goodness-of-fit (calibration) plots for binary variables by comparing
+    the proportion of observed vs. reconstructed outcomes over time (in %).
 
     :param rp0: Dictionary with a key 'long_bin' containing a list of binary variable names.
     :param dt: pd.DataFrame with at least columns 'REPI', 'TYPE', 'Variable', 'DV', 'TIME',
@@ -133,7 +133,7 @@ def gof_binary_list(
     """
 
     print("This plot applies only to binary endpoints and illustrates the calibration" \
-          "of the percentage of subjects who achieved the outcome value 1 (e.g., responders).")
+          " of the percentage of subjects who achieved the outcome value 1 (e.g., responders).")
     df = dt[(dt["REPI"] == 1) &
             (dt['TYPE'].isin(["Observed", "Reconstructed"])) &
             (dt['Variable'].isin(rp0['long_bin']))]
@@ -161,12 +161,87 @@ def gof_binary_list(
             print(plot)
     return gof_list
 
+
+def bin_traj_time_list(
+    rp0: dict,
+    dt: pd.DataFrame,
+    mode: str = "Reconstructed",
+    dt_cs: Optional[pd.DataFrame] = None,
+    strat_vars: Optional[List[str]] = None,
+    time_unit: Optional[str] = "Months",
+    save_path: Optional[str] = None,
+    width: Optional[int] = 8,
+    height: Optional[int] = 6,
+    dpi: Optional[int] = 300) -> Dict[str, ggplot]:
+    """
+    Creates trajectories plots of the percentage of subjects who achieved the outcome
+    value 1 (e.g., responders).
+
+    :param rp0: Dictionary with a key 'long_bin' containing a list of binary variable names.
+    :param dt: pd.DataFrame with at least columns 'REPI', 'TYPE', 'Variable', 'DV', 'TIME',
+               and optionally stratification variables.
+    :param mode: String, usually "Reconstructed", used for filtering TYPE.
+    :param dt_cs: Optional counterfactual DataFrame.
+    :param strat_vars: Optional list of column names for stratified (faceted) plots.
+    :param time_unit: A string representing the unit of time to display on the x-axis label
+                  (e.g., "Months", "Days", "Hours").
+    :param save_path: Optional path to a folder. If provided, saves each plot as a PNG.
+                      If not provided, plots will be shown interactively.
+    :param width: Width of the saved plot in inches (used only if save_path is provided).
+    :param height: Height of the saved plot in inches (used only if save_path is provided).
+    :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
+    :return: Dictionary mapping each variable name to its ggplot object.
+    """
+    if mode not in ["Reconstructed", "Simulations"]:
+        raise ValueError(f"`mode` must be either 'Reconstructed' or 'Simulations', got '{mode}'")
+
+    print("This plot applies only to binary endpoints and illustrates the calibration" \
+          " of the percentage of subjects who achieved the outcome value 1 (e.g., responders)" \
+          " along all time points")
+
+    strat_vars = strat_vars or []
+    plot_data = (dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
+            (dt['TYPE'].isin(["Observed", mode])) &
+            (dt['Variable'].isin(rp0['long_bin']))]
+            .groupby(strat_vars + ['Variable', 'TYPE', 'TIME'])
+            .agg(Rate=('DV', lambda x: 100 * (x.sum() / len(x))))
+            .reset_index())
+
+    if dt_cs is not None:
+        plot_data_cs = (dt_cs[(dt_cs["REPI"] == 1 if mode == "Reconstructed" else True) &
+                (dt_cs['TYPE'].isin([mode])) &
+                (dt_cs['Variable'].isin(rp0['long_bin']))]
+                .assign(TYPE="Counterfactual")
+                .groupby(strat_vars + ['Variable', 'TYPE', 'TIME'])
+                .agg(Rate=('DV', lambda x: 100 * (x.sum() / len(x))))
+                .reset_index())
+        plot_data = pd.concat([plot_data, plot_data_cs])
+
+    cs_name = "counterfactual_" if dt_cs is not None else ""    
+    plot_list = {}
+    for var in rp0['long_bin']:
+        plot = trajectory_plot(
+            plt_dt=plot_data[plot_data['Variable'] == var],
+            var_name=var,
+            strat_vars=strat_vars,
+            time_unit=time_unit,
+            achievement_plot=True)
+        plot_list[var] = plot
+
+        if save_path:
+            os.makedirs(save_path, exist_ok=True)
+            filename = os.path.join(save_path, '%s_%sbin_time_plot.png'%(var,cs_name))
+            plot.save(filename=filename, width=width, height=height, dpi=dpi)
+        else:
+            print(plot)
+    return plot_list
+
+
 def bar_categorical(
     plt_dt: pd.DataFrame,
     var_name: str,
     type_: str,
-    strat_vars: Optional[List[str]] = None,
-    facet_time: bool = False) -> ggplot:
+    strat_vars: Optional[List[str]] = None) -> ggplot:
     """
     Generates a bar chart for a categorical variable comparing observed vs reconstructed distributions.
 
@@ -174,11 +249,12 @@ def bar_categorical(
     :param var_name: Name of the variable to use as title.
     :param type_: "Percentage" or "Subjects" to define the bar heights.
     :param strat_vars: Optional list of variables to use for facetting.
-    :param facet_time: If True, facets the plot by TIME (assumes 'TIME' column is present).
     :return: ggplot object.
     """
-    plt_dt = plt_dt.loc[:, ~plt_dt.columns.duplicated()]
-    import ipdb; ipdb.set_trace()
+
+    if "TIME" in strat_vars and len(plt_dt.TIME.unique())>15:
+        print("WARNING: 'TIME' is a stratification variable with more than 15 values. The plot may not be optimal.")
+
     df = (plt_dt.groupby(['DV', 'TYPE'] + (strat_vars or []))
                 .size()
                 .reset_index(name='N'))
@@ -234,7 +310,6 @@ def bar_categorical_list(
     type_: str = "Percentage",
     dt_cs: Optional[pd.DataFrame] = None,
     strat_vars: Optional[List[str]] = None,
-    per_timepoint: bool = False,
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
@@ -245,9 +320,8 @@ def bar_categorical_list(
     :param rp0: Dictionary with a key 'long_cat' containing a list of categorical variable names.
     :param dt: DataFrame with the columns 'REPI', 'TYPE', 'Variable', 'DV', 'SUBJID', 'TIME' and optionally others.
     :param type_: "Percentage" or "Subjects" to define the bar heights.
-    :param dt_cs: Optional counterfactual DataFrame with TYPE='Counterfactual'.
+    :param dt_cs: Optional counterfactual DataFrame.
     :param strat_vars: Optional list of variables to use for facetting.
-    :param per_timepoint: If True, facets plots by TIME using the 'TIME' column.
     :param save_path: Optional path to folder where plots should be saved. If not provided, plots are shown.
     :param width: Width of the saved plot in inches (used only if save_path is provided).
     :param height: Height of the saved plot in inches (used only if save_path is provided).
@@ -276,6 +350,9 @@ def bar_categorical_list(
         dt_cs = dt_cs.loc[:, ["Variable", "DV", "SUBJID", "TIME", "TYPE"] + (strat_vars or [])]
         df = pd.concat([df, dt_cs])
 
+    if "TIME" in strat_vars:
+        df = df.loc[:, ~df.columns.duplicated()]
+
     name_ = "perc" if type_ == "Percentage" else "subj"
     cs_name = "counterfactual_" if dt_cs is not None else ""
     gof_list = {}
@@ -284,8 +361,7 @@ def bar_categorical_list(
             plt_dt=df[df['Variable'] == var],
             var_name=var,
             type_=type_,
-            strat_vars=strat_vars,
-            facet_time=per_timepoint)
+            strat_vars=strat_vars)
         gof_list[var] = plot
 
         if save_path:
@@ -318,21 +394,36 @@ def assign_visit_absolute(dat_vpc: Union[np.ndarray, pd.Series],
 def trajectory_plot(
     plt_dt: pd.DataFrame,
     var_name: str,
-    strat_vars: Optional[List[str]] = None) -> ggplot:
+    strat_vars: Optional[List[str]] = None,
+    time_unit: Optional[str] = "Months",
+    achievement_plot: Optional[bool] = False) -> ggplot:
     """
     Creates a ribbon plot of the median and 5th-95th percentiles of a continuous variable over time.
 
     :param plt_dt: DataFrame with summary statistics ('med', 'p5', 'p95') by Visit and TYPE.
     :param var_name: Name of the variable to use as the plot title.
     :param strat_vars: Optional list of variables to use for facetting.
+    :param time_unit: A string representing the unit of time to display on the x-axis label
+                  (e.g., "Months", "Days", "Hours").
+    :param achievement_plot: If True, plot percentage of subjects achieving the outcome over time;
+                             if False, plot median with ribbons.
     :return: ggplot object.
     """
-    p = (ggplot(plt_dt, aes(x='Visit', y='med', color='TYPE', group='TYPE')) +
-         geom_ribbon(aes(ymin='p5', ymax='p95', fill='TYPE'), alpha=0.2) +
-         geom_line(size=1) +
-         labs(x="Time (Months)", y="Value", title=var_name, fill=None, color=None) +
-         coord_cartesian() +
-         theme(legend_title=element_blank(), legend_position="top"))
+
+    if achievement_plot:
+        p = (ggplot(plt_dt, aes(x='TIME', y='Rate', color='TYPE', group='TYPE')) +
+            geom_line(size=1) +
+            labs(x=f"Time ({time_unit})", y="Percentage of subjects who achieved outcome",
+                 title=var_name, fill=None, color=None) +
+            coord_cartesian() +
+            theme(legend_title=element_blank(), legend_position="top"))
+    else:
+        p = (ggplot(plt_dt, aes(x='Visit', y='med', color='TYPE', group='TYPE')) +
+            geom_ribbon(aes(ymin='p5', ymax='p95', fill='TYPE'), alpha=0.2) +
+            geom_line(size=1) +
+            labs(x=f"Time ({time_unit})", y="Value", title=var_name, fill=None, color=None) +
+            coord_cartesian() +
+            theme(legend_title=element_blank(), legend_position="top"))
 
     if strat_vars:
         facets = '~' + '+'.join(strat_vars)
@@ -343,10 +434,11 @@ def trajectory_plot(
 def trajectory_plot_list(
     rp0: dict,
     dt: pd.DataFrame,
+    mode: str = "Reconstructed",
     bins: Optional[np.ndarray] = None,
     dt_cs: Optional[pd.DataFrame] = None,
-    mode: str = "Reconstructed",
     strat_vars: Optional[List[str]] = None,
+    time_unit: Optional[str] = "Months",
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
@@ -356,10 +448,12 @@ def trajectory_plot_list(
 
     :param rp0: Dictionary with key 'long_cont' containing a list of variable names to plot.
     :param dt: Main DataFrame containing data for "Observed" and `mode`.
-    :param bins: Optional array of visit cutoffs. If None, uses unique TIME values in `dt`.
-    :param dt_cs: Optional counterfactual DataFrame with TYPE='Counterfactual'.
     :param mode: String, usually "Reconstructed", used for filtering TYPE.
+    :param bins: Optional array of visit cutoffs. If None, uses unique TIME values in `dt`.
+    :param dt_cs: Optional counterfactual DataFrame.
     :param strat_vars: Optional list of stratification variables for facetting.
+    :param time_unit: A string representing the unit of time to display on the x-axis label
+                  (e.g., "Months", "Days", "Hours").
     :param save_path: Optional path to save plots. If None, plots are printed to console.
     :param width: Width of the saved plot in inches (used only if save_path is provided).
     :param height: Height of the saved plot in inches (used only if save_path is provided).
@@ -396,7 +490,11 @@ def trajectory_plot_list(
     cs_name = "counterfactual_" if dt_cs is not None else ""
     plot_list = {}
     for var in rp0['long_cont']:
-        plot = trajectory_plot(plot_data[plot_data['Variable'] == var], var, strat_vars)
+        plot = trajectory_plot(
+            plt_dt=plot_data[plot_data['Variable'] == var],
+            var_name=var,
+            strat_vars=strat_vars,
+            time_unit=time_unit)
         plot_list[var] = plot
 
         if save_path:

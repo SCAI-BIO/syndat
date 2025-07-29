@@ -12,6 +12,10 @@ def convert_to_syndat_scores(
     :param only_pos: If True, clips negative values in 'REC_' columns to zero.
     :return: Tuple of two DataFrames: (observed_df, predicted_df) with synchronized and filtered values.
     """
+    if "REPI" not in df.columns:
+        print("Column 'REPI' not found — adding it with ones for library compatibility.")
+        df["REPI"] = 1
+
     df = df[df.REPI == 1]
     for col in df.columns:
         if only_pos and col.startswith("REC_"):
@@ -134,6 +138,9 @@ def convert_data_to_tidy(df0: pd.DataFrame, type: str, only_pos: bool = False) -
     :param only_pos: If True, clips negative values in the data to zero.
     :return: A tidy-format DataFrame with standardized TYPE column ('Observed', 'Reconstructed', 'Simulations').
     """
+    if "REPI" not in df0.columns:
+        print("Column 'REPI' not found — adding it with ones for library compatibility.")
+        df0["REPI"] = 1
 
     if type=='long':
         df_final = convert_long_data_to_tidy(df0,only_pos=only_pos)
