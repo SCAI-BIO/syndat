@@ -1,3 +1,5 @@
+import logging
+
 import pandas
 import matplotlib
 import matplotlib.pyplot as plt
@@ -11,6 +13,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score
 
+logger = logging.getLogger(__name__)
 
 def plot_distributions(real: pandas.DataFrame, synthetic: pandas.DataFrame, store_destination: str) -> None:
     """
@@ -104,7 +107,7 @@ def plot_shap_discrimination(real: pd.DataFrame, synthetic: pd.DataFrame, save_p
     # Predict probabilities and calculate AUC score
     y_pred_proba = rfc.predict_proba(X_test)[:, 1]
     auc_score = roc_auc_score(y_test, y_pred_proba)
-    print(f'AUC Score: {auc_score}')
+    logger.info(f'AUC Score: {auc_score}')
 
     # Compute SHAP values
     explainer = shap.TreeExplainer(rfc)
@@ -117,7 +120,7 @@ def plot_shap_discrimination(real: pd.DataFrame, synthetic: pd.DataFrame, save_p
     # Save the plot if save_path is specified
     if save_path:
         plt.savefig(save_path, bbox_inches='tight')
-        print(f"Plot saved to {save_path}")
+        logger.info(f"Plot saved to {save_path}")
 
     else:
         # Show the plot

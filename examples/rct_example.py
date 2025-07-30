@@ -100,8 +100,17 @@ ldt["DRUG"] = ldt["SUBJID"].map(subjid_to_drug)
 results_path='./'
 gof_continuous_list(rp, ldt, strat_vars=["DRUG"], save_path=results_path)
 gof_binary_list(rp, ldt, strat_vars=["DRUG"], save_path=results_path)
-gof_categorical_list(rp, ldt, strat_vars=["DRUG"], save_path=results_path)
-gof_categorical_list(rp, ldt, strat_vars=["DRUG"], type_="Subjects", save_path=results_path)
+bar_categorical_list(rp, ldt, strat_vars=["DRUG"], save_path=results_path)
+bar_categorical_list(rp, ldt, strat_vars=["DRUG"], type_="Subjects", save_path=results_path)
 trajectory_plot_list(rp, ldt, strat_vars=["DRUG"], save_path=results_path) 
 raincloud_continuous_list(rp, ldt,type='longitudinal',strat_vars=["DRUG"], save_path=results_path) 
-raincloud_continuous_list(rp, sdt,type='static', save_path=results_path) 
+raincloud_continuous_list(rp, sdt,type='static', save_path=results_path)
+
+# Assume counterfactual simulations for placebo are done
+
+pbo = ldt[ldt.DRUG==0]
+dt_cs = ldt[ldt.DRUG==1]
+dt_cs["DRUG"] = 0
+bar_categorical_list(rp, pbo, dt_cs=dt_cs, type_='Percentage', strat_vars=["DRUG"], save_path=results_path)
+bin_traj_time_list(rp, pbo, dt_cs=dt_cs, save_path=results_path)
+trajectory_plot_list(rp, pbo, dt_cs=dt_cs, strat_vars=["DRUG"], save_path=results_path)
