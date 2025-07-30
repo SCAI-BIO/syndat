@@ -1,5 +1,9 @@
+import logging
+
 import pandas as pd
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 def convert_to_syndat_scores(
     df: pd.DataFrame,
@@ -13,7 +17,7 @@ def convert_to_syndat_scores(
     :return: Tuple of two DataFrames: (observed_df, predicted_df) with synchronized and filtered values.
     """
     if "REPI" not in df.columns:
-        print("Column 'REPI' not found — adding it with ones for library compatibility.")
+        logger.info("Column 'REPI' not found — adding it with ones for library compatibility.")
         df["REPI"] = 1
 
     df = df[df.REPI == 1]
@@ -84,7 +88,7 @@ def convert_long_data_to_tidy(df0: pd.DataFrame, only_pos: bool = False) -> pd.D
     """
 
     if "DRUG" not in df0.columns:
-        print("Column 'DRUG' not found — adding it with zeros for library compatibility.")
+        logger.info("Column 'DRUG' not found — adding it with zeros for library compatibility.")
         df0["DRUG"] = 0
 
     df1 = df0.melt(id_vars=["PTNO", "REPI", "TIME", "DRUG"], 
@@ -139,7 +143,7 @@ def convert_data_to_tidy(df0: pd.DataFrame, type: str, only_pos: bool = False) -
     :return: A tidy-format DataFrame with standardized TYPE column ('Observed', 'Reconstructed', 'Simulations').
     """
     if "REPI" not in df0.columns:
-        print("Column 'REPI' not found — adding it with ones for library compatibility.")
+        logger.info("Column 'REPI' not found — adding it with ones for library compatibility.")
         df0["REPI"] = 1
 
     if type=='long':

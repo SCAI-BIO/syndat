@@ -1,21 +1,27 @@
-from plotnine import (ggplot, ggsave, aes, geom_point, geom_smooth,
+import logging
+import os
+from typing import List, Optional, Dict, Union
+
+import numpy as np
+import pandas as pd
+from plotnine import (ggplot, aes, geom_point, geom_smooth,
                       geom_abline, geom_ribbon, geom_bar, geom_line,
                       geom_violin, geom_boxplot, geom_jitter,
                       coord_cartesian, scale_x_continuous, scale_y_continuous,
                       labs, scale_x_log10, scale_y_log10, facet_wrap,
                       theme, element_text, geom_text, element_blank,
-                      position_dodge, position_nudge, position_jitter, 
+                      position_dodge, position_nudge, position_jitter,
                       theme_minimal, element_rect)
-import numpy as np
-import pandas as pd
-import os
-from typing import List, Optional, Dict, Union
+
 ggstyle = theme(
     axis_title=element_text(size=18),
     axis_text=element_text(size=18),
     plot_title=element_text(size=18, ha='center'),
     strip_text=element_text(size=18)
 )
+
+logger = logging.getLogger(__name__)
+
 
 def gof_continuous(plt_dt: pd.DataFrame, var_name: str, strat_vars: Optional[List[str]] = None, log_trans: bool = False) -> ggplot:
     """
@@ -132,7 +138,7 @@ def gof_binary_list(
     :return: Dictionary mapping each variable name to its ggplot object.
     """
 
-    print("This plot applies only to binary endpoints and illustrates the calibration" \
+    logger.info("This plot applies only to binary endpoints and illustrates the calibration"
           " of the percentage of subjects who achieved the outcome value 1 (e.g., responders).")
     df = dt[(dt["REPI"] == 1) &
             (dt['TYPE'].isin(["Observed", "Reconstructed"])) &
@@ -195,7 +201,7 @@ def bin_traj_time_list(
     if mode not in ["Reconstructed", "Simulations"]:
         raise ValueError(f"`mode` must be either 'Reconstructed' or 'Simulations', got '{mode}'")
 
-    print("This plot applies only to binary endpoints and illustrates the calibration" \
+    logger.info("This plot applies only to binary endpoints and illustrates the calibration" \
           " of the percentage of subjects who achieved the outcome value 1 (e.g., responders)" \
           " along all time points")
 
@@ -253,7 +259,7 @@ def bar_categorical(
     """
 
     if "TIME" in strat_vars and len(plt_dt.TIME.unique())>15:
-        print("WARNING: 'TIME' is a stratification variable with more than 15 values. The plot may not be optimal.")
+        logger.warning("'TIME' is a stratification variable with more than 15 values. The plot may not be optimal.")
 
     df = (plt_dt.groupby(['DV', 'TYPE'] + (strat_vars or []))
                 .size()
@@ -464,7 +470,7 @@ def trajectory_plot_list(
         raise ValueError(f"`mode` must be either 'Reconstructed' or 'Simulations', got '{mode}'")
 
     if bins is None:
-        print("No bins were given. Using all time points")
+        logger.info("No bins were given. Using all time points")
         bins = dt['TIME'].unique()
     strat_vars = strat_vars or []
     dt['Visit'] = assign_visit_absolute(dt['TIME'], bins)
