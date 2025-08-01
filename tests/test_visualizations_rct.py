@@ -53,6 +53,11 @@ class TestPlotsRCT(unittest.TestCase):
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('gof_plot.png')]
         self.assertTrue(len(png_files) > 0, "GOF plot files were not created.")
 
+    def test_log_gof_continuous_list(self):
+        gof_continuous_list(self.rp, self.df, strat_vars=["DRUG"], log_trans=True, save_path=self.save_path)
+        png_files = [f for f in os.listdir(self.save_path) if f.endswith('gof_plot.png')]
+        self.assertTrue(len(png_files) > 0, "GOF plot files were not created.")
+
     def test_gof_binary_list(self):
         gof_binary_list(self.rp, self.df, strat_vars=["DRUG"], save_path=self.save_path)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('gof_bin_plot.png')]

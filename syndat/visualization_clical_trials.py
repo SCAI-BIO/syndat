@@ -53,9 +53,12 @@ def gof_continuous(plt_dt: pd.DataFrame, var_name: str, strat_vars: Optional[Lis
         min_val = 10 ** np.floor(np.log10(min_val))
         max_val = 10 ** np.ceil(np.log10(max_val + 2))
 
-        p += (scale_x_log10(limits=(min_val, max_val)) +
-              scale_y_log10(limits=(min_val, max_val)) +
-              labs(x='Observed (log scale)', y='Reconstructed (log scale)', title=f'Log {var_name}'))
+        p = p + scale_x_log10(limits=(min_val, max_val))
+        p = p + scale_y_log10(limits=(min_val, max_val))
+        p = p + labs(
+            x='Observed (log scale)',
+            y='Reconstructed (log scale)',
+            title=f'Log {var_name}')
 
     if strat_vars:
         facets = '~' + '+'.join(strat_vars)
