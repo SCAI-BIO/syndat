@@ -358,7 +358,6 @@ def compute_long_continuous_error_metrics(
         RMSE=("sq_error", lambda x: np.sqrt(np.mean(x))),
         MAPE=("pct_error", "mean")
     ).reset_index()
-
     result = {"full": full_df}
 
     # Per time point mean (across variables)
@@ -396,6 +395,9 @@ def compute_long_continuous_error_metrics(
         }])
 
     result["overall"] = overall_df
+    for key in ["full", "per_time", "per_variable", "overall"]:
+        if key in result:
+            result[key][["MAE", "RMSE", "MAPE"]] = result[key][["MAE", "RMSE", "MAPE"]].round(3)
 
     return result
 
@@ -403,8 +405,8 @@ def compute_long_categorical_error_metrics(
     rp0: dict,
     dt: pd.DataFrame,
     mode: str = "Reconstructed",
-    strat_vars: Optional[List[str]] = None,
     average: str = "weighted",  # "macro", "micro", or "weighted"
+    strat_vars: Optional[List[str]] = None,
     per_time_mean: bool = False,
     per_variable_mean: bool = False) -> Dict[str, pd.DataFrame]:
 
@@ -457,15 +459,16 @@ def compute_long_categorical_error_metrics(
             y_pred = group_df[mode]
 
             classes = list(range(max_cat + 1))
+
             # Sanity check for label variability
             if len(set(y_true)) <= 1 or len(set(y_pred)) <= 1:
                 raise ValueError("Only one class present")
 
             record = dict(zip(group_cols, group_keys))
-            record["F1"] = f1_score(y_true, y_pred, average=average, labels=classes, zero_division=0)
-            record["Accuracy"] = accuracy_score(y_true, y_pred)
-            record["Precision"] = precision_score(y_true, y_pred, average=average, labels=classes, zero_division=0)
-            record["Recall"] = recall_score(y_true, y_pred, average=average, labels=classes, zero_division=0)
+            record["F1"] = round(f1_score(y_true, y_pred, average=average, labels=classes, zero_division=0), 3)
+            record["Accuracy"] = round(accuracy_score(y_true, y_pred), 3)
+            record["Precision"] = round(precision_score(y_true, y_pred, average=average, labels=classes, zero_division=0), 3)
+            record["Recall"] = round(recall_score(y_true, y_pred, average=average, labels=classes, zero_division=0), 3)
         except Exception as e:
             record = dict(zip(group_cols, group_keys))
             record["F1"] = np.nan
@@ -522,5 +525,8 @@ def compute_long_categorical_error_metrics(
             "Recall": full_df["Recall"].mean()
         }])
     result["overall"] = overall_df
+    for key in ["full", "per_time", "per_variable", "overall"]:
+        if key in result:
+            result[key][["F1", "Accuracy", "Precision", "Recall"]] = result[key][["F1", "Accuracy", "Precision", "Recall"]].round(3)
 
     return result

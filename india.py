@@ -33,21 +33,21 @@ lt.loc[lt["Variable"] == "death", "Cats"] = 2
 lt_Enc0 =  lt[lt['Enc'] == 1]
 st_Enc0 =  st[st['Enc'] == 1]
 
-# # converting to SYNDAT format
-# ldt_Enc0_obs, ldt_Enc0_rec = convert_to_syndat_scores(ldt_Enc0)
-# sdt_Enc0_obs, sdt_Enc0_rec = convert_to_syndat_scores(sdt_Enc0, only_pos=True) 
+# converting to SYNDAT format
+ldt_Enc0_obs, ldt_Enc0_rec = convert_to_syndat_scores(ldt_Enc0)
+sdt_Enc0_obs, sdt_Enc0_rec = convert_to_syndat_scores(sdt_Enc0, only_pos=True) 
 
-# distribution_similarity = jensen_shannon_distance(sdt_Enc0_obs, sdt_Enc0_rec)
-# discrimination_scores = {'Stat_Enc0':discrimination(sdt_Enc0_obs, sdt_Enc0_rec)}
-# correlation_scores = {'Stat_Enc0':correlation(sdt_Enc0_obs, sdt_Enc0_rec)}
+distribution_similarity = jensen_shannon_distance(sdt_Enc0_obs, sdt_Enc0_rec)
+discrimination_scores = {'Stat_Enc0':discrimination(sdt_Enc0_obs, sdt_Enc0_rec)}
+correlation_scores = {'Stat_Enc0':correlation(sdt_Enc0_obs, sdt_Enc0_rec)}
 
-# distribution_similarity.update(jensen_shannon_distance(ldt_Enc0_obs, ldt_Enc0_rec))
-# try:
-#     discrimination_scores.update({'Long_Enc0': discrimination(ldt_Enc0_obs, ldt_Enc0_rec)})
-# except:
-#     discrimination_scores.update({'Long_Enc0': np.nan})
+distribution_similarity.update(jensen_shannon_distance(ldt_Enc0_obs, ldt_Enc0_rec))
+try:
+    discrimination_scores.update({'Long_Enc0': discrimination(ldt_Enc0_obs, ldt_Enc0_rec)})
+except:
+    discrimination_scores.update({'Long_Enc0': np.nan})
 
-# correlation_scores.update({'Long_Enc0': correlation(ldt_Enc0_obs, ldt_Enc0_rec)})
+correlation_scores.update({'Long_Enc0': correlation(ldt_Enc0_obs, ldt_Enc0_rec)})
 
 rp_Enc0 = get_rp(ldt_Enc0, lt_Enc0, st_Enc0)
 
@@ -61,13 +61,6 @@ ldt_Enc = ldt_Enc0.copy()
 ldt_Enc = ldt_Enc[(ldt_Enc.PTNO < 30) & (ldt_Enc.REPI < 5)]
 print('Converting to tidy format')
 ldt = convert_data_to_tidy(ldt_Enc,'long',only_pos=True)
-
-rp0 = rp_Enc0
-dt = ldt
-strat_vars = None
-mode="Reconstructed"
-epsilon = 1e-8
-strat_vars = ["DRUG"]
 
 long_cont_metrics = compute_long_continuous_error_metrics(
     rp_Enc0,ldt,strat_vars=["DRUG"],
@@ -91,20 +84,21 @@ long_cat_metrics_micro = compute_long_categorical_error_metrics(
     average="micro",
     per_time_mean=True,
     per_variable_mean=True)
+gof_continuous_list(rp_Enc0, ldt, strat_vars=["DRUG"], log_trans=True, save_path=fold_path) 
 import ipdb; ipdb.set_trace()
 
-#bins = list(range(1, 501, 10))
-#pbo = ldt[ldt.DRUG==0]
-#dt_cs = ldt[ldt.DRUG==1]
-#dt_cs["DRUG"] = 0
+bins = list(range(1, 501, 10))
+pbo = ldt[ldt.DRUG==0]
+dt_cs = ldt[ldt.DRUG==1]
+dt_cs["DRUG"] = 0
 
 
-# bin_traj_time_list(rp_Enc0, ldt,save_path=fold_path)
-# bin_traj_time_list(rp_Enc0, pbo, dt_cs=dt_cs, save_path=fold_path)
+bin_traj_time_list(rp_Enc0, ldt,save_path=fold_path)
+bin_traj_time_list(rp_Enc0, pbo, dt_cs=dt_cs, save_path=fold_path)
 
-# gof_continuous_list(rp_Enc0, ldt, strat_vars=["DRUG"], save_path=fold_path, log_trans=True)
-# gof_binary_list(rp_Enc0, ldt, strat_vars=["DRUG"], save_path=fold_path)
-# bar_categorical_list(rp_Enc0, ldt, strat_vars=["DRUG"], save_path=fold_path)
-# bar_categorical_list(rp_Enc0, ldt, strat_vars=["DRUG"], type_="Subjects", save_path=fold_path)
-# trajectory_plot_list(rp_Enc0, ldt, strat_vars=["DRUG"], save_path=fold_path) 
-# raincloud_continuous_list(rp_Enc0, ldt,type='longitudinal',strat_vars=["DRUG"], save_path=fold_path) 
+gof_continuous_list(rp_Enc0, ldt, strat_vars=["DRUG"], save_path=fold_path, log_trans=True)
+gof_binary_list(rp_Enc0, ldt, strat_vars=["DRUG"], save_path=fold_path)
+bar_categorical_list(rp_Enc0, ldt, strat_vars=["DRUG"], save_path=fold_path)
+bar_categorical_list(rp_Enc0, ldt, strat_vars=["DRUG"], type_="Subjects", save_path=fold_path)
+trajectory_plot_list(rp_Enc0, ldt, strat_vars=["DRUG"], save_path=fold_path) 
+raincloud_continuous_list(rp_Enc0, ldt,type='longitudinal',strat_vars=["DRUG"], save_path=fold_path) 

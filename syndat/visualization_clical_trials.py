@@ -70,7 +70,7 @@ def gof_continuous_list(
     rp0: dict,
     dt: pd.DataFrame,
     strat_vars: Optional[List[str]] = None,
-    log_trans: bool = False,
+    log_trans: Optional[bool] = False,
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,

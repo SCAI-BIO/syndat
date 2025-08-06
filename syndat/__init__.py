@@ -66,7 +66,7 @@ __all__ = [
     'normalized_correlation_difference',
     'discriminator_auc',
     'compute_long_continuous_error_metrics',
-    'compute_long_categorical_error_metrics'
+    'compute_long_categorical_error_metrics',
     # scores
     'discrimination',
     'distribution',
