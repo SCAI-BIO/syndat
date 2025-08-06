@@ -425,6 +425,9 @@ def compute_long_categorical_error_metrics(
              - 'per_variable': (optional) mean per variable
              - 'overall': overall mean values
     """
+    if average not in ["weighted", "macro", "micro"]:
+        logger.info("`average` should be one of: 'weighted', 'macro', or 'micro'")
+        raise AssertionError("Invalid value for `average`.")
 
     strat_vars = strat_vars or []
     dt = (dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) & 
@@ -484,6 +487,13 @@ def compute_long_categorical_error_metrics(
         }).reset_index()
         result["per_time"] = per_time_df
 
+        if per_time_df[["F1", "Accuracy", "Precision", "Recall"]].isna().any().any():
+            logger.info(
+                "There are NaN values in per_time mean because some metrics could not be calculated. "
+                "If for a given TIME, all variables have NaN metrics, the mean across variables will be NaN. "
+                "If at least one variable has a non-NaN metric for a TIME, the mean will be non-NaN."
+            )
+
     # Per variable mean (across time)
     if per_variable_mean:
         var_group = strat_vars + ["Variable"]
@@ -491,6 +501,13 @@ def compute_long_categorical_error_metrics(
             "F1": "mean", "Accuracy": "mean", "Precision": "mean", "Recall": "mean"
         }).reset_index()
         result["per_variable"] = per_variable_df
+
+        if per_variable_df[["F1", "Accuracy", "Precision", "Recall"]].isna().any().any():
+            logger.info(
+                "There are NaN values in per_variable mean because some metrics could not be calculated. "
+                "If for a given Variable, all time points have NaN metrics, the mean across times will be NaN. "
+                "If at least one time point has a non-NaN metric for a Variable, the mean will be non-NaN."
+            )
 
     # Overall
     if strat_vars:

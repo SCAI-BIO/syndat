@@ -74,8 +74,21 @@ long_cont_metrics = compute_long_continuous_error_metrics(
     per_time_mean=True,
     per_variable_mean=True)
 
-long_cat_metrics = compute_long_categorical_error_metrics(
+long_cat_metrics_w = compute_long_categorical_error_metrics(
     rp_Enc0,ldt,strat_vars=["DRUG"],
+    average="weighted",
+    per_time_mean=True,
+    per_variable_mean=True)
+
+long_cat_metrics_macro = compute_long_categorical_error_metrics(
+    rp_Enc0,ldt,strat_vars=["DRUG"],
+    average="macro",
+    per_time_mean=True,
+    per_variable_mean=True)
+
+long_cat_metrics_micro = compute_long_categorical_error_metrics(
+    rp_Enc0,ldt,strat_vars=["DRUG"],
+    average="micro",
     per_time_mean=True,
     per_variable_mean=True)
 import ipdb; ipdb.set_trace()
