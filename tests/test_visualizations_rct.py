@@ -4,6 +4,9 @@ import numpy as np
 import random
 import os
 from syndat import *
+import logging
+
+logger = logging.getLogger(__name__)
 
 def generate_mock_rp_and_df(n_patients=10, n_reps=5, times=[0.0, 6.0, 12.0, 18.0]):
     rp = {
@@ -48,9 +51,24 @@ class TestPlotsRCT(unittest.TestCase):
         self.save_path = "./examples/"
         self.strat_vars=["DRUG"]
 
+    def test_exceptions_long_cat(self):
+        with self.assertRaises(AssertionError):
+            compute_long_categorical_error_metrics(
+                self.rp, self.df, strat_vars=self.strat_vars, average="WEIGHTED"
+            )
+
     def test_long_cat_error_metrcis(self):
         result = compute_long_categorical_error_metrics(
             self.rp, self.df, strat_vars=self.strat_vars, per_time_mean=True, per_variable_mean=True)
+        expected_keys = {"full", "per_time", "per_variable", "overall"}
+        self.assertEqual(set(result.keys()), expected_keys)
+        # Check that each value is a non-empty DataFrame
+        for key in expected_keys:
+            self.assertIsInstance(result[key], pd.DataFrame, f"{key} is not a DataFrame")
+            self.assertFalse(result[key].empty, f"{key} DataFrame is empty")
+
+        result = compute_long_categorical_error_metrics(
+            self.rp, self.df, per_time_mean=True, per_variable_mean=True)
         expected_keys = {"full", "per_time", "per_variable", "overall"}
         self.assertEqual(set(result.keys()), expected_keys)
         # Check that each value is a non-empty DataFrame
@@ -67,6 +85,16 @@ class TestPlotsRCT(unittest.TestCase):
         for key in expected_keys:
             self.assertIsInstance(result[key], pd.DataFrame, f"{key} is not a DataFrame")
             self.assertFalse(result[key].empty, f"{key} DataFrame is empty")
+
+        result = compute_long_continuous_error_metrics(
+            self.rp, self.df, per_time_mean=True, per_variable_mean=True)
+        expected_keys = {"full", "per_time", "per_variable", "overall"}
+        self.assertEqual(set(result.keys()), expected_keys)
+        # Check that each value is a non-empty DataFrame
+        for key in expected_keys:
+            self.assertIsInstance(result[key], pd.DataFrame, f"{key} is not a DataFrame")
+            self.assertFalse(result[key].empty, f"{key} DataFrame is empty")
+
 
     def test_gof_continuous_list(self):
         gof_continuous_list(self.rp, self.df, strat_vars=["DRUG"], save_path=self.save_path)
