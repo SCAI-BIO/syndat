@@ -100,6 +100,7 @@ def gof_continuous_list(
                     .reset_index()
                     .dropna(subset=["Observed"]))
     gof_list = {}
+    log_name = "Log" if log_trans else ""
     for var in rp0['long_cont']:
         plot = gof_continuous(
             plt_dt=plot_data[plot_data['Variable'] == var],
@@ -111,7 +112,7 @@ def gof_continuous_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_gof_plot.png'%(var))
+            filename = os.path.join(save_path, '%s_%sgof_plot.png'%(var,log_name))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
