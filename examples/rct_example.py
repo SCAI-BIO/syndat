@@ -3,8 +3,11 @@ import pandas as pd
 import numpy as np
 import syndat
 import warnings
+from syndat.metrics import *
+from syndat.scores import *
 from syndat.preprocessing_tidy_format import *
 from syndat.visualization_clical_trials import *
+
 warnings.filterwarnings('ignore')
 
 # Define the variable types
@@ -83,10 +86,10 @@ sdt = df[id_cols + static_cols].drop_duplicates().reset_index(drop=True)
 ldt_obs, ldt_rec = convert_to_syndat_scores(ldt)
 sdt_obs, sdt_rec = convert_to_syndat_scores(sdt, only_pos=True)
 
-distribution_similarity = syndat.metrics.jensen_shannon_distance(sdt_obs, sdt_rec)
-correlation_scores = {'Stat':syndat.scores.correlation(sdt_obs, sdt_rec)}
-distribution_similarity.update(syndat.metrics.jensen_shannon_distance(ldt_obs, ldt_rec))
-correlation_scores.update({'Long': syndat.scores.correlation(ldt_obs, ldt_rec)})
+distribution_similarity = jensen_shannon_distance(sdt_obs, sdt_rec)
+correlation_scores = {'Stat':correlation(sdt_obs, sdt_rec)}
+distribution_similarity.update(jensen_shannon_distance(ldt_obs, ldt_rec))
+correlation_scores.update({'Long': correlation(ldt_obs, ldt_rec)})
  
 # Here begins the new part
 rp = get_rp(ldt, lt, st)
@@ -97,6 +100,31 @@ unique_subjids = ldt["SUBJID"].unique()
 subjid_to_drug = {subjid: f'DRUG {np.random.choice([0, 1])}' for subjid in unique_subjids}
 ldt["DRUG"] = ldt["SUBJID"].map(subjid_to_drug)
 
+# Metrics
+long_cont_metrics = compute_long_continuous_error_metrics(
+    rp,ldt,strat_vars=["DRUG"],
+    per_time_mean=True,
+    per_variable_mean=True)
+
+long_cat_metrics_w = compute_long_categorical_error_metrics(
+    rp,ldt,strat_vars=["DRUG"],
+    average="weighted",
+    per_time_mean=True,
+    per_variable_mean=True)
+
+long_cat_metrics_macro = compute_long_categorical_error_metrics(
+    rp,ldt,strat_vars=["DRUG"],
+    average="macro",
+    per_time_mean=True,
+    per_variable_mean=True)
+
+long_cat_metrics_micro = compute_long_categorical_error_metrics(
+    rp,ldt,strat_vars=["DRUG"],
+    average="micro",
+    per_time_mean=True,
+    per_variable_mean=True)
+
+# Plots
 results_path='./'
 gof_continuous_list(rp, ldt, strat_vars=["DRUG"], save_path=results_path)
 gof_binary_list(rp, ldt, strat_vars=["DRUG"], save_path=results_path)
@@ -107,7 +135,6 @@ raincloud_continuous_list(rp, ldt,type='longitudinal',strat_vars=["DRUG"], save_
 raincloud_continuous_list(rp, sdt,type='static', save_path=results_path)
 
 # Assume counterfactual simulations for placebo are done
-
 pbo = ldt[ldt.DRUG==0]
 dt_cs = ldt[ldt.DRUG==1]
 dt_cs["DRUG"] = 0

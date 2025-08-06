@@ -53,9 +53,12 @@ def gof_continuous(plt_dt: pd.DataFrame, var_name: str, strat_vars: Optional[Lis
         min_val = 10 ** np.floor(np.log10(min_val))
         max_val = 10 ** np.ceil(np.log10(max_val + 2))
 
-        p += (scale_x_log10(limits=(min_val, max_val)) +
-              scale_y_log10(limits=(min_val, max_val)) +
-              labs(x='Observed (log scale)', y='Reconstructed (log scale)', title=f'Log {var_name}'))
+        p = p + scale_x_log10(limits=(min_val, max_val))
+        p = p + scale_y_log10(limits=(min_val, max_val))
+        p = p + labs(
+            x='Observed (log scale)',
+            y='Reconstructed (log scale)',
+            title=f'Log {var_name}')
 
     if strat_vars:
         facets = '~' + '+'.join(strat_vars)
@@ -67,7 +70,7 @@ def gof_continuous_list(
     rp0: dict,
     dt: pd.DataFrame,
     strat_vars: Optional[List[str]] = None,
-    log_trans: bool = False,
+    log_trans: Optional[bool] = False,
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
@@ -97,6 +100,7 @@ def gof_continuous_list(
                     .reset_index()
                     .dropna(subset=["Observed"]))
     gof_list = {}
+    log_name = "Log" if log_trans else ""
     for var in rp0['long_cont']:
         plot = gof_continuous(
             plt_dt=plot_data[plot_data['Variable'] == var],
@@ -108,7 +112,7 @@ def gof_continuous_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_gof_plot.png'%(var))
+            filename = os.path.join(save_path, '%s_%sgof_plot.png'%(var,log_name))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)

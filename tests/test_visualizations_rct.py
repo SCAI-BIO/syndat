@@ -23,21 +23,21 @@ def generate_mock_rp_and_df(n_patients=10, n_reps=5, times=[0.0, 6.0, 12.0, 18.0
         for repi in range(1, n_reps + 1):
             for var in rp['long_vnames']:
                 for t in times:
-                    dv_value = (
-                        np.random.randint(0, 2) if var in rp['long_bin']
-                        else np.random.normal(50, 10) if var in rp['long_cont']
-                        else np.random.randint(0, 5)
-                    )
-                    rows.append({
-                        'SUBJID': subj,
-                        'REPI': repi,
-                        'TIME': t,
-                        'DRUG': drug,
-                        'DV': dv_value,
-                        'TYPE': random.choice(['Observed', 'Reconstructed']),
-                        'Variable': var,
-                    })
-
+                    for type_ in ['Observed', 'Reconstructed']:
+                        dv_value = (
+                            np.random.randint(0, 2) if var in rp['long_bin']
+                            else np.random.normal(50, 10) if var in rp['long_cont']
+                            else np.random.randint(0, 5)
+                        )
+                        rows.append({
+                            'SUBJID': subj,
+                            'REPI': repi,
+                            'TIME': t,
+                            'DRUG': drug,
+                            'DV': dv_value,
+                            'TYPE': type_,
+                            'Variable': var,
+                        })
     df = pd.DataFrame(rows)
     return rp, df
 
@@ -48,9 +48,59 @@ class TestPlotsRCT(unittest.TestCase):
         self.save_path = "./examples/"
         self.strat_vars=["DRUG"]
 
+    def test_exceptions_long_cat(self):
+        with self.assertRaises(AssertionError):
+            compute_long_categorical_error_metrics(
+                self.rp, self.df, strat_vars=self.strat_vars, average="WEIGHTED"
+            )
+
+    def test_long_cat_error_metrcis(self):
+        result = compute_long_categorical_error_metrics(
+            self.rp, self.df, strat_vars=self.strat_vars, per_time_mean=True, per_variable_mean=True)
+        expected_keys = {"full", "per_time", "per_variable", "overall"}
+        self.assertEqual(set(result.keys()), expected_keys)
+        # Check that each value is a non-empty DataFrame
+        for key in expected_keys:
+            self.assertIsInstance(result[key], pd.DataFrame, f"{key} is not a DataFrame")
+            self.assertFalse(result[key].empty, f"{key} DataFrame is empty")
+
+        result = compute_long_categorical_error_metrics(
+            self.rp, self.df, per_time_mean=True, per_variable_mean=True)
+        expected_keys = {"full", "per_time", "per_variable", "overall"}
+        self.assertEqual(set(result.keys()), expected_keys)
+        # Check that each value is a non-empty DataFrame
+        for key in expected_keys:
+            self.assertIsInstance(result[key], pd.DataFrame, f"{key} is not a DataFrame")
+            self.assertFalse(result[key].empty, f"{key} DataFrame is empty")
+
+    def test_long_cont_error_metrcis(self):
+        result = compute_long_continuous_error_metrics(
+            self.rp, self.df, strat_vars=self.strat_vars, per_time_mean=True, per_variable_mean=True)
+        expected_keys = {"full", "per_time", "per_variable", "overall"}
+        self.assertEqual(set(result.keys()), expected_keys)
+        # Check that each value is a non-empty DataFrame
+        for key in expected_keys:
+            self.assertIsInstance(result[key], pd.DataFrame, f"{key} is not a DataFrame")
+            self.assertFalse(result[key].empty, f"{key} DataFrame is empty")
+
+        result = compute_long_continuous_error_metrics(
+            self.rp, self.df, per_time_mean=True, per_variable_mean=True)
+        expected_keys = {"full", "per_time", "per_variable", "overall"}
+        self.assertEqual(set(result.keys()), expected_keys)
+        # Check that each value is a non-empty DataFrame
+        for key in expected_keys:
+            self.assertIsInstance(result[key], pd.DataFrame, f"{key} is not a DataFrame")
+            self.assertFalse(result[key].empty, f"{key} DataFrame is empty")
+
+
     def test_gof_continuous_list(self):
         gof_continuous_list(self.rp, self.df, strat_vars=["DRUG"], save_path=self.save_path)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('gof_plot.png')]
+        self.assertTrue(len(png_files) > 0, "GOF plot files were not created.")
+
+    def test_log_gof_continuous_list(self):
+        gof_continuous_list(self.rp, self.df, strat_vars=["DRUG"], log_trans=True, save_path=self.save_path)
+        png_files = [f for f in os.listdir(self.save_path) if f.endswith('Loggof_plot.png')]
         self.assertTrue(len(png_files) > 0, "GOF plot files were not created.")
 
     def test_gof_binary_list(self):
