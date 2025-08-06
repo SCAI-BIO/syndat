@@ -4,9 +4,6 @@ import numpy as np
 import random
 import os
 from syndat import *
-import logging
-
-logger = logging.getLogger(__name__)
 
 def generate_mock_rp_and_df(n_patients=10, n_reps=5, times=[0.0, 6.0, 12.0, 18.0]):
     rp = {
