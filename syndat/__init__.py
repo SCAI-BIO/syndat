@@ -2,7 +2,7 @@ from syndat import scores
 from syndat import metrics
 from syndat import visualization
 from syndat import postprocessing
-from .rct import preprocessing_tidy_format, visualization_clical_trials
+from .rct import preprocessing_tidy_format, visualization_clical_trials, metrics_rct
 
 from .visualization import (
     plot_distributions,
@@ -29,7 +29,10 @@ from .metrics import (
     normalized_correlation_difference,
     discriminator_auc
 )
-from .rct.metrics_rct import compute_long_continuous_error_metrics, compute_long_categorical_error_metrics
+from .rct.metrics_rct import (
+    compute_long_continuous_error_metrics,
+    compute_long_categorical_error_metrics
+)
 
 from syndat.rct.preprocessing_tidy_format import (
     convert_to_syndat_scores,
