@@ -4,6 +4,8 @@ import numpy as np
 import random
 import os
 from syndat import *
+from syndat import compute_long_continuous_error_metrics, compute_long_categorical_error_metrics
+
 
 def generate_mock_rp_and_df(n_patients=10, n_reps=5, times=[0.0, 6.0, 12.0, 18.0]):
     rp = {

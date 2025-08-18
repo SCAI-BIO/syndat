@@ -2,8 +2,7 @@ from syndat import scores
 from syndat import metrics
 from syndat import visualization
 from syndat import postprocessing
-from syndat import preprocessing_tidy_format
-from syndat import visualization_clical_trials
+from .rct import preprocessing_tidy_format, visualization_clical_trials
 
 from .visualization import (
     plot_distributions,
@@ -28,12 +27,11 @@ from .postprocessing import (
 from .metrics import (
     jensen_shannon_distance,
     normalized_correlation_difference,
-    discriminator_auc,
-    compute_long_continuous_error_metrics,
-    compute_long_categorical_error_metrics
+    discriminator_auc
 )
+from .rct.metrics_rct import compute_long_continuous_error_metrics, compute_long_categorical_error_metrics
 
-from .preprocessing_tidy_format import (
+from syndat.rct.preprocessing_tidy_format import (
     convert_to_syndat_scores,
     get_rp,
     convert_long_data_to_tidy,
@@ -41,7 +39,7 @@ from .preprocessing_tidy_format import (
     convert_data_to_tidy
 )
 
-from .visualization_clical_trials import (
+from syndat.rct.visualization_clical_trials import (
     gof_continuous,
     gof_continuous_list,
     gof_binary_list,
