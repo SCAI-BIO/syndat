@@ -1,8 +1,8 @@
 import warnings
 
-from syndat import compute_long_continuous_error_metrics, compute_long_categorical_error_metrics
 from syndat.metrics import *
 from syndat.scores import *
+from syndat.rct.metrics_rct import compute_long_continuous_error_metrics, compute_long_categorical_error_metrics
 from syndat.rct.preprocessing_tidy_format import *
 from syndat.rct.visualization_clical_trials import *
 
