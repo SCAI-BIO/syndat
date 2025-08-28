@@ -1,11 +1,11 @@
-from typing import Optional, List, Dict
-
+import logging
 import numpy as np
 import pandas as pd
+
+from typing import Optional, List, Dict
 from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score
 
-from syndat.metrics import logger
-
+logger = logging.getLogger(__name__)
 
 def compute_continuous_error_metrics(
     rp0: dict,
