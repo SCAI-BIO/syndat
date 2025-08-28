@@ -12,6 +12,7 @@ def generate_mock_rp_and_df(n_patients=10, n_reps=5, times=[0.0, 6.0, 12.0, 18.0
         'Tmax': np.float64(max(times)),
         'static_vnames': [f'VarStat{i}' for i in range(1, 5)],
         'static_cat': [f'VarStat{i}' for i in [1, 3]],
+        'static_bin': [f'VarStat{i}' for i in [3]],
         'static_cont': [f'VarStat{i}' for i in [2, 4]],
         'long_vnames': [f'VarLong{i}' for i in range(1, 6)],
         'long_cat': [f'VarLong{i}' for i in [1, 3, 4]],
@@ -19,10 +20,27 @@ def generate_mock_rp_and_df(n_patients=10, n_reps=5, times=[0.0, 6.0, 12.0, 18.0
         'long_cont': [f'VarLong{i}' for i in [2, 5]],
     }
 
-    rows = []
+    long_rows = []
+    static_rows = []
     for subj in range(1, n_patients + 1):
         drug = f'DRUG {random.choice([0, 1])}'
         for repi in range(1, n_reps + 1):
+            for var in rp['static_vnames']:
+                for type_ in ['Observed', 'Reconstructed']:
+                    dv_value = (
+                                np.random.randint(0, 2) if var in rp['static_bin']
+                                else np.random.normal(50, 10) if var in rp['static_cont']
+                                else np.random.randint(0, 5)
+                            )
+                    static_rows.append({
+                        'SUBJID': subj,
+                        'REPI': repi,
+                        'DRUG': drug,
+                        'DV': dv_value,
+                        'TYPE': type_,
+                        'Variable': var,
+                    })
+
             for var in rp['long_vnames']:
                 for t in times:
                     for type_ in ['Observed', 'Reconstructed']:
@@ -31,7 +49,7 @@ def generate_mock_rp_and_df(n_patients=10, n_reps=5, times=[0.0, 6.0, 12.0, 18.0
                             else np.random.normal(50, 10) if var in rp['long_cont']
                             else np.random.randint(0, 5)
                         )
-                        rows.append({
+                        long_rows.append({
                             'SUBJID': subj,
                             'REPI': repi,
                             'TIME': t,
@@ -40,13 +58,16 @@ def generate_mock_rp_and_df(n_patients=10, n_reps=5, times=[0.0, 6.0, 12.0, 18.0
                             'TYPE': type_,
                             'Variable': var,
                         })
-    df = pd.DataFrame(rows)
-    return rp, df
+
+    df_static = pd.DataFrame(static_rows)
+    df_long = pd.DataFrame(long_rows)
+
+    return rp, df_static, df_long
 
 
 class TestPlotsRCT(unittest.TestCase):
     def setUp(self):
-        self.rp, self.df = generate_mock_rp_and_df()
+        self.rp, self.sdf, self.df = generate_mock_rp_and_df()
         self.save_path = "./examples/"
         self.strat_vars=["DRUG"]
 
@@ -75,6 +96,25 @@ class TestPlotsRCT(unittest.TestCase):
             self.assertIsInstance(result[key], pd.DataFrame, f"{key} is not a DataFrame")
             self.assertFalse(result[key].empty, f"{key} DataFrame is empty")
 
+        result = compute_categorical_error_metrics(
+            self.rp, self.sdf, strat_vars=self.strat_vars, static=True, per_variable_mean=True)
+        expected_keys = {"full", "per_variable", "overall"}
+        self.assertEqual(set(result.keys()), expected_keys)
+        # Check that each value is a non-empty DataFrame
+        for key in expected_keys:
+            self.assertIsInstance(result[key], pd.DataFrame, f"{key} is not a DataFrame")
+            self.assertFalse(result[key].empty, f"{key} DataFrame is empty")
+
+        result = compute_categorical_error_metrics(
+            self.rp, self.sdf, static=True, per_variable_mean=True)
+        expected_keys = {"full", "per_variable", "overall"}
+        self.assertEqual(set(result.keys()), expected_keys)
+        # Check that each value is a non-empty DataFrame
+        for key in expected_keys:
+            self.assertIsInstance(result[key], pd.DataFrame, f"{key} is not a DataFrame")
+            self.assertFalse(result[key].empty, f"{key} DataFrame is empty")
+
+
     def test_cont_error_metrcis(self):
         result = compute_continuous_error_metrics(
             self.rp, self.df, strat_vars=self.strat_vars, per_time_mean=True, per_variable_mean=True)
@@ -94,8 +134,30 @@ class TestPlotsRCT(unittest.TestCase):
             self.assertIsInstance(result[key], pd.DataFrame, f"{key} is not a DataFrame")
             self.assertFalse(result[key].empty, f"{key} DataFrame is empty")
 
+        result = compute_continuous_error_metrics(
+            self.rp, self.sdf, strat_vars=self.strat_vars, static=True, per_variable_mean=True)
+        expected_keys = {"full", "per_variable", "overall"}
+        self.assertEqual(set(result.keys()), expected_keys)
+        # Check that each value is a non-empty DataFrame
+        for key in expected_keys:
+            self.assertIsInstance(result[key], pd.DataFrame, f"{key} is not a DataFrame")
+            self.assertFalse(result[key].empty, f"{key} DataFrame is empty")
+
+        result = compute_continuous_error_metrics(
+            self.rp, self.sdf, static=True, per_variable_mean=True)
+        expected_keys = {"full", "per_variable", "overall"}
+        self.assertEqual(set(result.keys()), expected_keys)
+        # Check that each value is a non-empty DataFrame
+        for key in expected_keys:
+            self.assertIsInstance(result[key], pd.DataFrame, f"{key} is not a DataFrame")
+            self.assertFalse(result[key].empty, f"{key} DataFrame is empty")
+
     def test_gof_continuous_list(self):
         gof_continuous_list(self.rp, self.df, strat_vars=["DRUG"], save_path=self.save_path)
+        png_files = [f for f in os.listdir(self.save_path) if f.endswith('gof_plot.png')]
+        self.assertTrue(len(png_files) > 0, "GOF plot files were not created.")
+
+        gof_continuous_list(self.rp, self.sdf, strat_vars=["DRUG"], static=True, save_path=self.save_path)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('gof_plot.png')]
         self.assertTrue(len(png_files) > 0, "GOF plot files were not created.")
 
@@ -104,8 +166,16 @@ class TestPlotsRCT(unittest.TestCase):
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('Loggof_plot.png')]
         self.assertTrue(len(png_files) > 0, "GOF plot files were not created.")
 
+        gof_continuous_list(self.rp, self.sdf, strat_vars=["DRUG"], static=True, log_trans=True, save_path=self.save_path)
+        png_files = [f for f in os.listdir(self.save_path) if f.endswith('Loggof_plot.png')]
+        self.assertTrue(len(png_files) > 0, "GOF plot files were not created.")
+
     def test_gof_binary_list(self):
         gof_binary_list(self.rp, self.df, strat_vars=["DRUG"], save_path=self.save_path)
+        png_files = [f for f in os.listdir(self.save_path) if f.endswith('gof_bin_plot.png')]
+        self.assertTrue(len(png_files) > 0, "Binary GOF plot files were not created.")
+
+        gof_binary_list(self.rp, self.sdf, strat_vars=["DRUG"], static=True, save_path=self.save_path)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('gof_bin_plot.png')]
         self.assertTrue(len(png_files) > 0, "Binary GOF plot files were not created.")
 
@@ -119,8 +189,16 @@ class TestPlotsRCT(unittest.TestCase):
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
         self.assertTrue(len(png_files) > 0, "Categorical GOF plot files were not created.")
 
+        bar_categorical_list(self.rp, self.sdf, strat_vars=["DRUG"], static=True, save_path=self.save_path)
+        png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
+        self.assertTrue(len(png_files) > 0, "Categorical GOF plot files were not created.")
+
     def test_gof_categorical_list2(self):
         bar_categorical_list(self.rp, self.df, type_="Subjects", strat_vars=["DRUG"], save_path=self.save_path)
+        png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_subj_plot.png')]
+        self.assertTrue(len(png_files) > 0, "Categorical GOF plot files were not created.")
+
+        bar_categorical_list(self.rp, self.sdf, type_="Subjects", strat_vars=["DRUG"], static=True, save_path=self.save_path)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_subj_plot.png')]
         self.assertTrue(len(png_files) > 0, "Categorical GOF plot files were not created.")
 
@@ -131,6 +209,10 @@ class TestPlotsRCT(unittest.TestCase):
 
     def test_raincloud_continuous_list(self):
         raincloud_continuous_list(self.rp, self.df, strat_vars=["DRUG"], save_path=self.save_path)
+        png_files = [f for f in os.listdir(self.save_path) if f.endswith('raincloud_plot.png')]
+        self.assertTrue(len(png_files) > 0, "Raincloud plot files were not created.")
+
+        raincloud_continuous_list(self.rp, self.sdf, strat_vars=["DRUG"], static=True, save_path=self.save_path)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('raincloud_plot.png')]
         self.assertTrue(len(png_files) > 0, "Raincloud plot files were not created.")
 
