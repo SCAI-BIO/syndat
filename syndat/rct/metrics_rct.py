@@ -7,11 +7,12 @@ from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_sc
 from syndat.metrics import logger
 
 
-def compute_long_continuous_error_metrics(
+def compute_continuous_error_metrics(
     rp0: dict,
     dt: pd.DataFrame,
     mode: str = "Reconstructed",
     strat_vars: Optional[List[str]] = None,
+    static: bool = False,
     per_time_mean: bool = False,
     per_variable_mean: bool = False,
     epsilon: float = 1e-8) -> pd.DataFrame:
@@ -22,9 +23,10 @@ def compute_long_continuous_error_metrics(
     :param dt: Main DataFrame containing data for "Observed" and `mode`.
     :param mode: String, usually "Reconstructed", used for filtering TYPE.
     :param strat_vars: List of column names to stratify by (e.g., ['DRUG']).
-    :param epsilon: Small value added to denominator for MAPE to avoid division by zero.
+    :param static: If True, metrics for static variables will be calculated.
     :param per_time_mean: If True, returns mean error per time point (averaged across variables).
     :param per_variable_mean: If True, returns mean error per variable (averaged across time).
+    :param epsilon: Small value added to denominator for MAPE to avoid division by zero.
     :return: Dict of dataframes with keys:
              - 'full': full stratified error metrics
              - 'per_time': (optional) mean per time point
@@ -34,12 +36,19 @@ def compute_long_continuous_error_metrics(
 
     strat_vars = strat_vars or []
 
-    dt = (dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
-            (dt['TYPE'].isin(["Observed", mode])) &
-            (dt['Variable'].isin(rp0['long_cont']))])
+    if static:
+        dt = (dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
+                (dt['TYPE'].isin(["Observed", mode])) &
+                (dt['Variable'].isin(rp0['static_cont']))])
+        TIME_v = []
+    else:
+        dt = (dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
+                (dt['TYPE'].isin(["Observed", mode])) &
+                (dt['Variable'].isin(rp0['long_cont']))])
+        TIME_v = ["TIME"]
 
     dt = dt.pivot_table(
-        index=strat_vars + ["SUBJID", "TIME", "Variable"],
+        index=strat_vars + ["SUBJID", "Variable"] + TIME_v,
         columns="TYPE",
         values="DV").dropna(subset=["Observed", mode])
 
@@ -53,7 +62,7 @@ def compute_long_continuous_error_metrics(
     dt["pct_error"] = np.abs((dt["Observed"] - dt[mode]) / (dt["Observed"] + epsilon)) * 100
 
     # Aggregate per time point and variable
-    full_df = dt.groupby(strat_vars +  ["TIME", "Variable"]).agg(
+    full_df = dt.groupby(strat_vars + TIME_v + ["Variable"]).agg(
         MAE=("abs_error", "mean"),
         RMSE=("sq_error", lambda x: np.sqrt(np.mean(x))),
         MAPE=("pct_error", "mean")
@@ -61,7 +70,7 @@ def compute_long_continuous_error_metrics(
     result = {"full": full_df}
 
     # Per time point mean (across variables)
-    if per_time_mean:
+    if per_time_mean and not static:
         time_group = strat_vars + ["TIME"]
         per_time_df = full_df.groupby(time_group).agg(
             MAE=("MAE", "mean"),
@@ -102,12 +111,13 @@ def compute_long_continuous_error_metrics(
     return result
 
 
-def compute_long_categorical_error_metrics(
+def compute_categorical_error_metrics(
     rp0: dict,
     dt: pd.DataFrame,
     mode: str = "Reconstructed",
     average: str = "weighted",  # "macro", "micro", or "weighted"
     strat_vars: Optional[List[str]] = None,
+    static: bool = False,
     per_time_mean: bool = False,
     per_variable_mean: bool = False) -> Dict[str, pd.DataFrame]:
 
@@ -118,8 +128,9 @@ def compute_long_categorical_error_metrics(
     :param rp0: Dictionary with key 'long_cat' and/or 'long_bin' with list of categorical variable names.
     :param dt: Main DataFrame containing data for "Observed" and `mode`.
     :param mode: String, usually "Reconstructed", used for filtering TYPE.
-    :param strat_vars: List of column names to stratify by (e.g., ['DRUG']).
     :param average: what to calculate the average. Macro micro or weighted.
+    :param strat_vars: List of column names to stratify by (e.g., ['DRUG']).
+    :param static: If True, metrics for static variables will be calculated.
     :param per_time_mean: If True, returns mean error per time point (averaged across variables).
     :param per_variable_mean: If True, returns mean error per variable (averaged across time).
     :return: Dict of dataframes with keys:
@@ -133,12 +144,20 @@ def compute_long_categorical_error_metrics(
         raise AssertionError("Invalid value for `average`.")
 
     strat_vars = strat_vars or []
-    dt = (dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
+    if static:
+        dt = (dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
+                (dt['TYPE'].isin(["Observed", mode])) &
+                (dt['Variable'].isin(rp0['static_cat'] + rp0['static_bin']))])
+        TIME_v = []
+    else:
+        dt = (dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
             (dt['TYPE'].isin(["Observed", mode])) &
             (dt['Variable'].isin(rp0['long_cat'] + rp0['long_bin']))])
+        TIME_v = ["TIME"]
+
 
     dt = dt.pivot_table(
-        index=strat_vars + ["SUBJID", "TIME", "Variable"],
+        index=strat_vars + ["SUBJID", "Variable"] + TIME_v,
         columns="TYPE",
         values="DV").dropna(subset=["Observed", mode])
 
@@ -146,7 +165,7 @@ def compute_long_categorical_error_metrics(
     dt[mode] = dt[mode].astype(int)
     variable_max_categories = dt.groupby('Variable')['Observed'].max().to_dict()
     records = []
-    group_cols = strat_vars + ["TIME", "Variable"]
+    group_cols = strat_vars + TIME_v + ["Variable"]
     for group_keys, group_df in dt.groupby(group_cols):
         variable_name = group_keys[-1]  # last in group_cols
 
@@ -184,7 +203,7 @@ def compute_long_categorical_error_metrics(
     result = {"full": full_df}
 
     # Per time point mean (across variables)
-    if per_time_mean:
+    if per_time_mean and not static:
         time_group = strat_vars + ["TIME"]
         per_time_df = full_df.groupby(time_group).agg({
             "F1": "mean", "Accuracy": "mean", "Precision": "mean", "Recall": "mean"
@@ -209,8 +228,8 @@ def compute_long_categorical_error_metrics(
         if per_variable_df[["F1", "Accuracy", "Precision", "Recall"]].isna().any().any():
             logger.info(
                 "There are NaN values in per_variable mean because some metrics could not be calculated. "
-                "If for a given Variable, all time points have NaN metrics, the mean across times will be NaN. "
-                "If at least one time point has a non-NaN metric for a Variable, the mean will be non-NaN."
+                "If for a given Variable, all instances have NaN metrics, the mean across instances will be NaN. "
+                "If at least one instance has a non-NaN metric for a Variable, the mean will be non-NaN."
             )
 
     # Overall
