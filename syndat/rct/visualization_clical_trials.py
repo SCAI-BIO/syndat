@@ -70,6 +70,7 @@ def gof_continuous_list(
     rp0: dict,
     dt: pd.DataFrame,
     strat_vars: Optional[List[str]] = None,
+    static: bool = False,
     log_trans: Optional[bool] = False,
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
@@ -80,9 +81,10 @@ def gof_continuous_list(
     Saves or displays each plot depending on whether a path is provided.
 
     :param rp0: Dictionary with a key 'long_cont' containing a list of continuous variable names.
-    :param dt: pd.DataFrame with columns including 'REPI', 'TYPE', 'Variable', 'DV', 'SUBJID', 'TIME',
+    :param dt: pd.DataFrame with columns including 'REPI', 'TYPE', 'Variable', 'DV', 'SUBJID', 'TIME' (if static = False),
                and optionally stratification variables.
     :param strat_vars: Optional list of column names to stratify each plot (faceted visualization).
+    :param static: If True, metrics for static variables will be calculated.
     :param log_trans: If True, applies log10 transformation to both axes in the plots.
     :param save_path: Optional path to a folder. If provided, saves each plot as a PNG file.
                       If not provided, plots will be shown interactively.
@@ -91,17 +93,24 @@ def gof_continuous_list(
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
     :return: A dictionary where keys are variable names and values are ggplot GOF plots.
     """
+    if static:
+        col_name = 'static_cont'
+        TIME_V = []
+    else:
+        col_name = 'long_cont'
+        TIME_V = ['TIME']
+
     plot_data = (dt[(dt['REPI'] == 1) &
                     (dt['TYPE'].isin(["Observed", "Reconstructed"])) &
-                    (dt['Variable'].isin(rp0['long_cont']))]
-                    .loc[:, ["Variable", "DV", "SUBJID", "TIME", "TYPE"] + (strat_vars or [])]
-                    .pivot_table(index=["SUBJID", "TIME", "Variable"] + (strat_vars or []),
+                    (dt['Variable'].isin(rp0[col_name]))]
+                    .loc[:, ["Variable", "DV", "SUBJID", "TYPE"] + TIME_V + (strat_vars or [])]
+                    .pivot_table(index=["SUBJID", "Variable"] + TIME_V + (strat_vars or []),
                                 columns="TYPE", values="DV")
                     .reset_index()
                     .dropna(subset=["Observed"]))
     gof_list = {}
     log_name = "Log" if log_trans else ""
-    for var in rp0['long_cont']:
+    for var in rp0[col_name]:
         plot = gof_continuous(
             plt_dt=plot_data[plot_data['Variable'] == var],
             var_name=var,
@@ -122,6 +131,7 @@ def gof_binary_list(
     rp0: dict,
     dt: pd.DataFrame,
     strat_vars: Optional[List[str]] = None,
+    static: bool = False,
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
@@ -131,9 +141,10 @@ def gof_binary_list(
     the proportion of observed vs. reconstructed outcomes over time (in %).
 
     :param rp0: Dictionary with a key 'long_bin' containing a list of binary variable names.
-    :param dt: pd.DataFrame with at least columns 'REPI', 'TYPE', 'Variable', 'DV', 'TIME',
+    :param dt: pd.DataFrame with at least columns 'REPI', 'TYPE', 'Variable', 'DV', 'TIME' (if static = False),
                and optionally stratification variables.
     :param strat_vars: Optional list of column names for stratified (faceted) plots.
+    :param static: If True, metrics for static variables will be calculated.
     :param save_path: Optional path to a folder. If provided, saves each plot as a PNG.
                       If not provided, plots will be shown interactively.
     :param width: Width of the saved plot in inches (used only if save_path is provided).
@@ -141,21 +152,27 @@ def gof_binary_list(
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
     :return: Dictionary mapping each variable name to its ggplot object.
     """
+    if static:
+        col_name = 'static_bin'
+        TIME_V = []
+    else:
+        col_name = 'long_cont'
+        TIME_V = ['TIME']
 
     logger.info("This plot applies only to binary endpoints and illustrates the calibration"
           " of the percentage of subjects who achieved the outcome value 1 (e.g., responders).")
     df = dt[(dt["REPI"] == 1) &
             (dt['TYPE'].isin(["Observed", "Reconstructed"])) &
-            (dt['Variable'].isin(rp0['long_bin']))]
-    observed_keys = df[df['TYPE'] == 'Observed'][['SUBJID', 'TIME', 'Variable']]
-    df = df.merge(observed_keys.drop_duplicates(), on=['SUBJID', 'TIME', 'Variable'], how='inner')
-    plot_data = (df.groupby(['TIME', 'Variable'] + (strat_vars or []))
+            (dt['Variable'].isin(rp0[col_name]))]
+    observed_keys = df[df['TYPE'] == 'Observed'][['SUBJID', 'Variable'] + TIME_V]
+    df = df.merge(observed_keys.drop_duplicates(), on=['SUBJID', 'Variable'] + TIME_V, how='inner')
+    plot_data = (df.groupby(TIME_V + ['Variable'] + (strat_vars or []))
                    .agg(Observed=('DV', lambda x: 100 * (x[df['TYPE'] == 'Observed'].sum() / len(x))),
                         Reconstructed=('DV', lambda x: 100 * (x[df['TYPE'] == 'Reconstructed'].sum() / len(x))))
                    .reset_index())
 
     gof_list = {}
-    for var in rp0['long_bin']:
+    for var in rp0[col_name]:
         plot = gof_continuous(
             plt_dt=plot_data[plot_data['Variable'] == var],
             var_name=var,
@@ -320,24 +337,32 @@ def bar_categorical_list(
     type_: str = "Percentage",
     dt_cs: Optional[pd.DataFrame] = None,
     strat_vars: Optional[List[str]] = None,
+    static: bool = False,
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
     dpi: Optional[int] = 300) -> Dict[str, ggplot]:
     """
-    Generates and optionally saves bar plots for all categorical variables listed in rp0['long_cat'].
+    Generates and optionally saves bar plots for all categorical variables listed in rp0.
 
     :param rp0: Dictionary with a key 'long_cat' containing a list of categorical variable names.
-    :param dt: DataFrame with the columns 'REPI', 'TYPE', 'Variable', 'DV', 'SUBJID', 'TIME' and optionally others.
+    :param dt: DataFrame with the columns 'REPI', 'TYPE', 'Variable', 'DV', 'SUBJID', 'TIME' (if static = False) and optionally others.
     :param type_: "Percentage" or "Subjects" to define the bar heights.
     :param dt_cs: Optional counterfactual DataFrame.
     :param strat_vars: Optional list of variables to use for facetting.
+    :param static: If True, metrics for static variables will be calculated.
     :param save_path: Optional path to folder where plots should be saved. If not provided, plots are shown.
     :param width: Width of the saved plot in inches (used only if save_path is provided).
     :param height: Height of the saved plot in inches (used only if save_path is provided).
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
     :return: Dictionary of ggplot objects keyed by variable name.
     """
+    if static:
+        col_name = 'static_cat'
+        TIME_V = []
+    else:
+        col_name = 'long_cat'
+        TIME_V = ['TIME']
 
     if dt_cs is not None:
         if type_ != "Percentage":
@@ -345,19 +370,19 @@ def bar_categorical_list(
 
     df = dt[(dt["REPI"] == 1) &
             (dt['TYPE'].isin(["Observed", "Reconstructed"])) &
-            (dt['Variable'].isin(rp0['long_cat']))]
-    observed_keys = df[df['TYPE'] == 'Observed'][['SUBJID', 'TIME', 'Variable']]
-    df = df.merge(observed_keys.drop_duplicates(), on=['SUBJID', 'TIME', 'Variable'], how='inner')
-    df = df.loc[:, ["Variable", "DV", "SUBJID", "TIME", "TYPE"] + (strat_vars or [])]
+            (dt['Variable'].isin(rp0[col_name]))]
+    observed_keys = df[df['TYPE'] == 'Observed'][['SUBJID', 'Variable'] + TIME_V]
+    df = df.merge(observed_keys.drop_duplicates(), on=['SUBJID', 'Variable']  + TIME_V, how='inner')
+    df = df.loc[:, ["Variable", "DV", "SUBJID", "TYPE"] + TIME_V + (strat_vars or [])]
 
     if dt_cs is not None:
         dt_cs = (dt_cs[(dt_cs["REPI"] == 1) &
                 (dt_cs['TYPE'].isin(["Reconstructed"])) &
-                (dt_cs['Variable'].isin(rp0['long_cat']))]
+                (dt_cs['Variable'].isin(rp0[col_name]))]
                 .assign(TYPE="Counterfactual")
-                .merge(observed_keys.drop(columns=["SUBJID"]).drop_duplicates(), on=["TIME", "Variable"], how="inner")
+                .merge(observed_keys.drop(columns=["SUBJID"]).drop_duplicates(), on= TIME_V + ["Variable"], how="inner")
                 .reset_index())    
-        dt_cs = dt_cs.loc[:, ["Variable", "DV", "SUBJID", "TIME", "TYPE"] + (strat_vars or [])]
+        dt_cs = dt_cs.loc[:, ["Variable", "DV", "SUBJID", "TYPE"] + TIME_V + (strat_vars or [])]
         df = pd.concat([df, dt_cs])
 
     if "TIME" in strat_vars:
@@ -366,7 +391,7 @@ def bar_categorical_list(
     name_ = "perc" if type_ == "Percentage" else "subj"
     cs_name = "counterfactual_" if dt_cs is not None else ""
     gof_list = {}
-    for var in rp0['long_cat']:
+    for var in rp0[col_name]:
         plot = bar_categorical(
             plt_dt=df[df['Variable'] == var],
             var_name=var,
@@ -561,7 +586,7 @@ def raincloud_plot(
 def raincloud_continuous_list(
     rp0: dict,
     dt: pd.DataFrame,
-    type: str = "longitudinal",
+    static: bool = False,
     strat_vars: Optional[List[str]] = None,
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
@@ -573,7 +598,7 @@ def raincloud_continuous_list(
 
     :param rp0: Dictionary with a key 'long_cont', 'static_cont' containing a list of continuous variable names.
     :param dt: DataFrame with the columns 'REPI', 'TYPE', 'Variable', 'DV', 'SUBJID', 'TIME' and optionally others.
-    :param type_: "longitudinal" or "static" to define the type of variable to plot.
+    :param static: If True, metrics for static variables will be calculated.
     :param strat_vars: Optional list of variables to use for facetting.
     :param save_path: Optional path to folder where plots should be saved. If not provided, plots are shown.
     :param width: Width of the saved plot in inches (used only if save_path is provided).
@@ -582,62 +607,39 @@ def raincloud_continuous_list(
     :return: Dictionary of ggplot objects keyed by variable name.
     """
 
+    if static:
+        col_name = 'static_cont'
+        TIME_V = []
+    else:
+        col_name = 'long_cont'
+        TIME_V = ['TIME']
+
     plot_list = {}
-    if type == "longitudinal":
-        plot_data = (
-            dt[(dt["REPI"] == 1) & (dt["TYPE"].isin(["Observed", "Reconstructed"])) & (dt["Variable"].isin(rp0["long_cont"]))]
-            .loc[:, ["Variable", "DV", "SUBJID", "TIME", "TYPE"] + (strat_vars or [])]
-            .pivot(index=["SUBJID", "TIME", "Variable"] + (strat_vars or []), 
-                   columns="TYPE", values="DV")
-            .reset_index()
-            .dropna(subset=["Observed"])
+    plot_data = (
+        dt[(dt["REPI"] == 1) & (dt["TYPE"].isin(["Observed", "Reconstructed"])) & (dt["Variable"].isin(rp0[col_name]))]
+        .loc[:, ["Variable", "DV", "SUBJID", "TYPE"] + TIME_V + (strat_vars or [])]
+        .pivot(index=["SUBJID", "Variable"] + TIME_V + (strat_vars or []), 
+                columns="TYPE", values="DV")
+        .reset_index()
+        .dropna(subset=["Observed"])
+    )
+    for var in rp0[col_name]:
+        plot = raincloud_plot(
+            plt_dt=plot_data[plot_data["Variable"] == var]
+            .melt(id_vars=["SUBJID", "Variable"] + TIME_V + (strat_vars or []),
+                    value_vars=["Observed", "Reconstructed"],
+                    var_name="TYPE",
+                    value_name="DV"),
+            var_name=var,
+            strat_vars=strat_vars
         )
-        for var in rp0['long_cont']:
-            plot = raincloud_plot(
-                plt_dt=plot_data[plot_data["Variable"] == var]
-                .melt(id_vars=["SUBJID", "TIME", "Variable"] + (strat_vars or []),
-                      value_vars=["Observed", "Reconstructed"],
-                      var_name="TYPE",
-                      value_name="DV"),
-                var_name=var,
-                strat_vars=strat_vars
-            )
-            plot_list[var] = plot
+        plot_list[var] = plot
 
-            if save_path:
-                os.makedirs(save_path, exist_ok=True)
-                filename = os.path.join(save_path, '%s_raincloud_plot.png'%(var))
-                plot.save(filename=filename, width=width, height=height, dpi=dpi)
-            else:
-                print(plot)
-
-    elif type == "static":
-        plot_data = (
-            dt[(dt["REPI"] == 1) & (dt["TYPE"].isin(["Observed", "Reconstructed"])) & (dt["Variable"].isin(rp0["static_cont"]))]
-            .loc[:, ["Variable", "DV", "SUBJID", "TYPE"] + (strat_vars or [])]
-            .pivot(index=["SUBJID", "Variable"] + (strat_vars or []), 
-                   columns="TYPE", values="DV")
-            .reset_index()
-            .dropna(subset=["Observed"])
-        )
-
-        for var in rp0['static_cont']:
-            plot = raincloud_plot(
-                plt_dt=plot_data[plot_data["Variable"] == var]
-                .melt(id_vars=["SUBJID", "Variable"] + (strat_vars or []),
-                      value_vars=["Observed", "Reconstructed"],
-                      var_name="TYPE",
-                      value_name="DV"),
-                var_name=var,
-                strat_vars=strat_vars
-            )
-            plot_list[var] = plot
-
-            if save_path:
-                os.makedirs(save_path, exist_ok=True)
-                filename = os.path.join(save_path, '%s_raincloud_plot.png'%(var))
-                plot.save(filename=filename, width=width, height=height, dpi=dpi)
-            else:
-                print(plot)
+        if save_path:
+            os.makedirs(save_path, exist_ok=True)
+            filename = os.path.join(save_path, '%s_raincloud_plot.png'%(var))
+            plot.save(filename=filename, width=width, height=height, dpi=dpi)
+        else:
+            print(plot)
 
     return plot_list

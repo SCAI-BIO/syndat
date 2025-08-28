@@ -30,8 +30,8 @@ from .metrics import (
     discriminator_auc
 )
 from .rct.metrics_rct import (
-    compute_long_continuous_error_metrics,
-    compute_long_categorical_error_metrics
+    compute_continuous_error_metrics,
+    compute_categorical_error_metrics
 )
 
 from syndat.rct.preprocessing_tidy_format import (
@@ -66,8 +66,8 @@ __all__ = [
     'jensen_shannon_distance',
     'normalized_correlation_difference',
     'discriminator_auc',
-    'compute_long_continuous_error_metrics',
-    'compute_long_categorical_error_metrics',
+    'compute_continuous_error_metrics',
+    'compute_categorical_error_metrics',
     # scores
     'discrimination',
     'distribution',

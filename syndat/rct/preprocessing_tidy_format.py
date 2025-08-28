@@ -60,10 +60,12 @@ def get_rp(
     if st is not None:
         rp["static_vnames"] = st["Variable"].dropna().unique().tolist()
         rp["static_cat"] = st[st["Type"] == "cat"]["Variable"].dropna().unique().tolist()
+        rp["static_bin"] = st[(st["Type"] == "cat") & (st["Cats"] == 2)]["Variable"].dropna().unique().tolist()
         rp["static_cont"] = st[st["Type"] != "cat"]["Variable"].dropna().unique().tolist()
     else:
         rp["static_vnames"] = []
         rp["static_cat"] = []
+        rp["static_bin"] = []
         rp["static_cont"] = []
 
     if lt is not None:
@@ -72,9 +74,10 @@ def get_rp(
         rp["long_bin"] = lt[(lt["Type"] == "cat") & (lt["Cats"] == 2)]["Variable"].dropna().unique().tolist()
         rp["long_cont"] = lt[lt["Type"] != "cat"]["Variable"].dropna().unique().tolist()
     else:
-        rp["static_vnames"] = []
-        rp["static_cat"] = []
-        rp["static_cont"] = []
+        rp["long_vnames"] = []
+        rp["long_cat"] = []
+        rp["long_bin"] = []
+        rp["long_cont"] = []
     return rp
 
 def convert_long_data_to_tidy(df0: pd.DataFrame, only_pos: bool = False) -> pd.DataFrame:
@@ -119,19 +122,24 @@ def convert_static_data_to_tidy(df0: pd.DataFrame, only_pos: bool = False) -> pd
     :return: A tidy-format DataFrame with columns ['SUBJID', 'REPI', 'TYPE', 'Variable', 'DV', 'MASK'].
     """
 
-    df1 = df0.melt(id_vars=["PTNO", "REPI"], 
+    id_vars = ["PTNO", "REPI"]
+    cols_ = ["TYPE"]
+    if "DRUG" in df0.columns:
+        id_vars = id_vars + ["DRUG"]
+        cols_ = cols_ + ["DRUG"]
+    df1 = df0.melt(id_vars=id_vars, 
                    var_name="FullVar", 
                    value_name="DV")
     df1[["TYPE", "Variable"]] = df1["FullVar"].str.extract(r'([^_]+)_(.*)')
     df1.drop(columns='FullVar', inplace=True)
     if only_pos:
         df1["DV"] = df1["DV"].clip(lower=0)
-    df_mask = df1[df1["TYPE"] == "MASK"].drop(columns="TYPE").rename(columns={"DV": "MASK"})
+    df_mask = df1[df1["TYPE"] == "MASK"].drop(columns=cols_).rename(columns={"DV": "MASK"})
     df_final = df1[df1["TYPE"] != "MASK"].merge(df_mask, on=["PTNO", "REPI", "Variable"], how="left")
     df_final = df_final.rename(columns={"PTNO": "SUBJID"})
     return df_final
 
-def convert_data_to_tidy(df0: pd.DataFrame, type: str, only_pos: bool = False) -> pd.DataFrame:
+def convert_data_to_tidy(df0: pd.DataFrame, type: str, only_pos: bool = False, only_realtimes: bool = False) -> pd.DataFrame:
     """
     Converts a DataFrame from wide to tidy format, depending on whether it is longitudinal or static data.
     It uses `convert_long_data` for longitudinal data and `convert_static_data` for static data.
@@ -151,8 +159,11 @@ def convert_data_to_tidy(df0: pd.DataFrame, type: str, only_pos: bool = False) -
     else:
         df_final = convert_static_data_to_tidy(df0,only_pos=only_pos)
 
-    df_final = df_final[
-        ((df_final["TYPE"] == "OBS") & (df_final["MASK"] == 1)) | (df_final["TYPE"] != "OBS")]
+    if only_realtimes:
+        df_final = df_final[df_final["MASK"] == 1]
+    else:
+        df_final = df_final[
+            ((df_final["TYPE"] == "OBS") & (df_final["MASK"] == 1)) | (df_final["TYPE"] != "OBS")]
 
     df_final = df_final.drop(columns=["MASK"])
 
