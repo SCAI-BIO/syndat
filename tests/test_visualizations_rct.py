@@ -185,11 +185,23 @@ class TestPlotsRCT(unittest.TestCase):
         self.assertTrue(len(png_files) > 0, "Binary time plot files were not created.")
 
     def test_gof_categorical_list(self):
+        bar_categorical_list(self.rp, self.df, strat_vars=["DRUG"], save_path=self.save_path)
+        png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
+        self.assertTrue(len(png_files) > 0, "Categorical GOF plot files were not created.")
+
         bar_categorical_list(self.rp, self.df, strat_vars=["DRUG","TIME"], save_path=self.save_path)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
         self.assertTrue(len(png_files) > 0, "Categorical GOF plot files were not created.")
 
+        bar_categorical_list(self.rp, self.df, save_path=self.save_path)
+        png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
+        self.assertTrue(len(png_files) > 0, "Categorical GOF plot files were not created.")
+
         bar_categorical_list(self.rp, self.sdf, strat_vars=["DRUG"], static=True, save_path=self.save_path)
+        png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
+        self.assertTrue(len(png_files) > 0, "Categorical GOF plot files were not created.")
+
+        bar_categorical_list(self.rp, self.sdf, static=True, save_path=self.save_path)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
         self.assertTrue(len(png_files) > 0, "Categorical GOF plot files were not created.")
 
