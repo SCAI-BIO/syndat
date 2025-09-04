@@ -156,7 +156,7 @@ def gof_binary_list(
         col_name = 'static_bin'
         TIME_V = []
     else:
-        col_name = 'long_cont'
+        col_name = 'long_bin'
         TIME_V = ['TIME']
 
     logger.info("This plot applies only to binary endpoints and illustrates the calibration"
@@ -279,7 +279,7 @@ def bar_categorical(
     :return: ggplot object.
     """
 
-    if "TIME" in strat_vars and len(plt_dt.TIME.unique())>15:
+    if strat_vars is not None and "TIME" in strat_vars and len(plt_dt.TIME.unique())>15:
         logger.warning("'TIME' is a stratification variable with more than 15 values. The plot may not be optimal.")
 
     df = (plt_dt.groupby(['DV', 'TYPE'] + (strat_vars or []))
@@ -293,10 +293,12 @@ def bar_categorical(
  
         dv_vals = sorted(df_grouped['DV'].unique())
         type_vals = sorted(df_grouped['TYPE'].unique())
+        # import ipdb; ipdb.set_trace()
  
-        strat_vals = sorted(df[strat_vars[0]].unique())
+        # strat_vals = sorted(df[strat_vars[0]].unique())
+        strat_vals = [sorted(df[var].unique()) for var in strat_vars]
         full_index = pd.MultiIndex.from_product(
-            [dv_vals, type_vals, strat_vals],
+            [dv_vals, type_vals] + strat_vals,
             names=['DV', 'TYPE'] + strat_vars
         )
         df = df_grouped.set_index(group_cols).reindex(full_index, fill_value=0).reset_index()
@@ -309,7 +311,7 @@ def bar_categorical(
         )
  
         df = df.set_index(['DV', 'TYPE']).reindex(full_index, fill_value=0).reset_index()
-
+    df['DV'] = df['DV'].astype(str)
     if type_ == "Percentage":
         p = (ggplot(df, aes(x='DV', y='PERC', fill='TYPE')) +
              geom_bar(stat='identity', position=position_dodge(width=1)) +
@@ -385,7 +387,7 @@ def bar_categorical_list(
         dt_cs = dt_cs.loc[:, ["Variable", "DV", "SUBJID", "TYPE"] + TIME_V + (strat_vars or [])]
         df = pd.concat([df, dt_cs])
 
-    if "TIME" in strat_vars:
+    if strat_vars is not None and "TIME" in strat_vars:
         df = df.loc[:, ~df.columns.duplicated()]
 
     name_ = "perc" if type_ == "Percentage" else "subj"
