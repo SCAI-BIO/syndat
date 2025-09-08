@@ -8,3 +8,4 @@ API Reference
    syndat.scores
    syndat.visualization
    syndat.postprocessing
+   syndat.rct
