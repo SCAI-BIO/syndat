@@ -6,7 +6,7 @@ from syndat.metrics import *
 from syndat.scores import *
 from syndat.rct.metrics_rct import compute_continuous_error_metrics, compute_categorical_error_metrics
 from syndat.rct.preprocessing_tidy_format import *
-from syndat.rct.visualization_clical_trials import *
+from syndat.rct.visualization_clinical_trials import *
 from tests.test_visualizations_rct import generate_mock_rp_and_df
 warnings.filterwarnings('ignore')
 
