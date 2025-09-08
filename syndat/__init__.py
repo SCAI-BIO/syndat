@@ -35,6 +35,7 @@ from .rct.metrics_rct import (
 )
 
 from syndat.rct.preprocessing_tidy_format import (
+    merge_real_synthetic,
     convert_to_syndat_scores,
     get_rp,
     convert_long_data_to_tidy,
@@ -77,6 +78,7 @@ __all__ = [
     'normalize_float_precision',
     'assert_minmax',
     # Preprocessing tidy format
+    'merge_real_synthetic',
     'convert_to_syndat_scores',
     'get_rp',
     'convert_long_data_to_tidy',

@@ -1,14 +1,24 @@
 import warnings
-
+import pandas as pd
+import numpy as np
+import random
 from syndat.metrics import *
 from syndat.scores import *
-from syndat.rct.metrics_rct import compute_long_continuous_error_metrics, compute_long_categorical_error_metrics
+from syndat.rct.metrics_rct import compute_continuous_error_metrics, compute_categorical_error_metrics
 from syndat.rct.preprocessing_tidy_format import *
 from syndat.rct.visualization_clical_trials import *
-
+from tests.test_visualizations_rct import generate_mock_rp_and_df
 warnings.filterwarnings('ignore')
 
 # Define the variable types
+# 'cat' refers to categorical values, please define the number of categories
+#       in the 'Cats' vector 
+# For binary variables use also cat as the type
+# For any other continuous value please use the following values
+#       positive value: 'pos' and 1 as number of categories,
+#       real value i.e positive or negative and 1 as number of categories,
+#       probabilities also 1 as number of categories
+# Names can be assigned according to user preferences
 lt = pd.DataFrame({
     'Variable': ['Long_Var1', 'Long_Var2', 'Long_Var3'],
     'Type': ['cat', 'cat','pos'],
@@ -16,9 +26,9 @@ lt = pd.DataFrame({
 })
 
 st = pd.DataFrame({
-    'Variable': ['Stat_Var1', 'Stat_Var2', 'Stat_Var3'],
-    'Type': ['cat', 'pos', 'pos'],
-    'Cats': [5, 1, 1]
+    'Variable': ['Stat_Var1', 'Stat_Var2', 'Stat_Var3', 'Stat_Var4'],
+    'Type': ['cat', 'pos', 'cat','pos'],
+    'Cats': [5, 1, 2, 1]
 })
 
 # Configuration
@@ -30,13 +40,29 @@ Tmax = 18
 rows = []
 
 for ptno in range(1, n_patients + 1):
+    drug = random.choice(["Placebo", "Treated"])
+    mask_lt = {var: {time: np.random.choice([0, 1]) for time in timepoints}
+               for var in lt['Variable']}
+    mask_st = {var: np.random.choice([0, 1]) for var in st['Variable']}
+
     for repi in range(1, n_repi + 1):
+        static_values = {}
+        for _, row_st in st.iterrows():
+            var = row_st['Variable']
+            if row_st['Type'] == 'cat':
+                static_values[f'OBS_{var}'] = np.random.randint(0, 2)
+                static_values[f'REC_{var}'] = np.random.randint(0, 2)
+            else:
+                static_values[f'OBS_{var}'] = np.random.normal(loc=50, scale=10)
+                static_values[f'REC_{var}'] = np.random.normal(loc=50, scale=10)
+            static_values[f'MASK_{var}'] = mask_st[var]
+
         for time in timepoints:
             row = {
                 'PTNO': ptno,
                 'REPI': repi,
                 'TIME': float(time),
-                'DRUG': -1  # constant for now
+                'DRUG': drug
             }
 
             # Add OBS and REC for longitudinal vars
@@ -47,23 +73,10 @@ for ptno in range(1, n_patients + 1):
                     row[f'REC_{var}'] = np.random.randint(0, 4)
                 else:
                     row[f'OBS_{var}'] = np.random.normal(loc=50, scale=10)
-                    row[f'REC_{var}'] = np.random.normal(loc=50, scale=10)
-                row[f'MASK_{var}'] = np.random.choice([0, 1])
+                    row[f'REC_{var}'] = np.random.normal(loc=50, scale=10)  
+                row[f'MASK_{var}'] = mask_lt[var][time]
 
-            # Add OBS and REC for static vars — same across timepoints
-            for _, row_st in st.iterrows():
-                var = row_st['Variable']
-                if row_st['Type'] == 'cat':
-                    value_obs = np.random.randint(0, 2)
-                    value_rec = np.random.randint(0, 2)
-                else:
-                    value_obs = np.random.normal(loc=50, scale=10)
-                    value_rec = np.random.normal(loc=50, scale=10)
-
-                row[f'OBS_{var}'] = value_obs
-                row[f'REC_{var}'] = value_rec
-                row[f'MASK_{var}'] = np.random.choice([0, 1])
-
+            row.update(static_values)
             rows.append(row)
 
 # Create DataFrame
@@ -76,7 +89,35 @@ static_cols = ['OBS_' + v for v in static_vars] + ['REC_' + v for v in static_va
 id_cols = ['PTNO', 'REPI']
 long_base_cols = id_cols + ['TIME', 'DRUG']
 
-# Build longitudinal and static DataFrames
+# In case you have two dataframes (real and synthetic one). You can also
+# use our function to merge them and organie them correctly
+# If the real dataframe does not include a MASK_x column for each variable, then
+# the column will be created assuming all time points are observed
+real_ldf = df[long_base_cols + ['OBS_' + v for v in long_vars] + ['MASK_' + v for v in long_vars]].copy()
+synthetic_ldf = df[long_base_cols + ['REC_' + v for v in long_vars]].copy()
+real_ldf = real_ldf.rename(
+    columns={col: col.replace("OBS_", "") for col in real_ldf.columns 
+             if col.startswith("OBS_")})
+
+synthetic_ldf = synthetic_ldf.rename(
+    columns={col: col.replace("REC_", "") for col in synthetic_ldf.columns 
+             if col.startswith("REC_")})
+
+real_sdf = df[id_cols + ['OBS_' + v for v in static_vars] + ['MASK_' + v for v in static_vars]].copy()
+synthetic_sdf = df[id_cols + ['REC_' + v for v in static_vars]].copy()
+real_sdf = real_sdf.rename(
+    columns={col: col.replace("OBS_", "") for col in real_sdf.columns 
+             if col.startswith("OBS_")})
+
+synthetic_sdf = synthetic_sdf.rename(
+    columns={col: col.replace("REC_", "") for col in synthetic_sdf.columns 
+             if col.startswith("REC_")})
+
+ldt = merge_real_synthetic(real_ldf, synthetic_ldf, patient_identifier='PTNO', type='longitudinal')
+sdt = merge_real_synthetic(real_sdf, synthetic_sdf, patient_identifier='PTNO', type='static')
+
+# In this case, some time points were not observed for some patients,
+# therefore we are building the dataframe with the Mask directly
 ldt = df[long_base_cols + long_cols].copy()
 sdt = df[id_cols + static_cols].drop_duplicates().reset_index(drop=True)
 
@@ -94,29 +135,25 @@ rp = get_rp(ldt, lt, st)
 ldt = convert_data_to_tidy(ldt,'long',only_pos=True)
 sdt = convert_data_to_tidy(sdt,'static',only_pos=True)
 
-unique_subjids = ldt["SUBJID"].unique()
-subjid_to_drug = {subjid: f'DRUG {np.random.choice([0, 1])}' for subjid in unique_subjids}
-ldt["DRUG"] = ldt["SUBJID"].map(subjid_to_drug)
-
 # Metrics
-long_cont_metrics = compute_long_continuous_error_metrics(
+long_cont_metrics = compute_continuous_error_metrics(
     rp,ldt,strat_vars=["DRUG"],
     per_time_mean=True,
     per_variable_mean=True)
 
-long_cat_metrics_w = compute_long_categorical_error_metrics(
+long_cat_metrics_w = compute_categorical_error_metrics(
     rp,ldt,strat_vars=["DRUG"],
     average="weighted",
     per_time_mean=True,
     per_variable_mean=True)
 
-long_cat_metrics_macro = compute_long_categorical_error_metrics(
+long_cat_metrics_macro = compute_categorical_error_metrics(
     rp,ldt,strat_vars=["DRUG"],
     average="macro",
     per_time_mean=True,
     per_variable_mean=True)
 
-long_cat_metrics_micro = compute_long_categorical_error_metrics(
+long_cat_metrics_micro = compute_categorical_error_metrics(
     rp,ldt,strat_vars=["DRUG"],
     average="micro",
     per_time_mean=True,
@@ -129,13 +166,14 @@ gof_binary_list(rp, ldt, strat_vars=["DRUG"], save_path=results_path)
 bar_categorical_list(rp, ldt, strat_vars=["DRUG"], save_path=results_path)
 bar_categorical_list(rp, ldt, strat_vars=["DRUG"], type_="Subjects", save_path=results_path)
 trajectory_plot_list(rp, ldt, strat_vars=["DRUG"], save_path=results_path) 
-raincloud_continuous_list(rp, ldt,type='longitudinal',strat_vars=["DRUG"], save_path=results_path) 
-raincloud_continuous_list(rp, sdt,type='static', save_path=results_path)
+#raincloud_continuous_list(rp, ldt,strat_vars=["DRUG"], save_path=results_path) 
+print('static')
+raincloud_continuous_list(rp, sdt,static=True, save_path=results_path)
 
 # Assume counterfactual simulations for placebo are done
-pbo = ldt[ldt.DRUG==0]
-dt_cs = ldt[ldt.DRUG==1]
-dt_cs["DRUG"] = 0
+pbo = ldt[ldt.DRUG=="Placebo"]
+dt_cs = ldt[ldt.DRUG=="Treated"]
+dt_cs["DRUG"] = "Placebo"
 bar_categorical_list(rp, pbo, dt_cs=dt_cs, type_='Percentage', strat_vars=["DRUG"], save_path=results_path)
 bin_traj_time_list(rp, pbo, dt_cs=dt_cs, save_path=results_path)
 trajectory_plot_list(rp, pbo, dt_cs=dt_cs, strat_vars=["DRUG"], save_path=results_path)
