@@ -9,7 +9,7 @@ def merge_real_synthetic(
         real_df: pd.DataFrame,
         synthetic_df: pd.DataFrame,
         patient_identifier: str = 'PTNO',
-        type='static') -> dict:
+        type='static') -> pd.DataFrame:
     """
     Merges a real and a synthetic dataframe with the same variable name,
     into one dataframe, renames columns and create others for library
@@ -19,7 +19,7 @@ def merge_real_synthetic(
     param synthetic_df: real dataframe with at least one column to identify patient ID and time if type=='longitudinal'
     param patient_identifier: column name to identify different patients
     param type: defines whether the data is longitudinal or static
-
+    return: combined dataframe with real and synthetic data including required columns for compatibility.
     """
     if type not in ["static", "longitudinal"]:
         logger.info(f"Invalid type '{type}'. Allowed values are 'static' or 'longitudinal'.")
