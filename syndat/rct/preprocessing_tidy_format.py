@@ -12,12 +12,13 @@ def merge_real_synthetic(
         type='static') -> dict:
     """
     Merges a real and a synthetic dataframe with the same variable name,
-    into one dataframe, renames columns and create others for librabry
-    compability
+    into one dataframe, renames columns and create others for library
+    compatibility
+
     param real_df: real dataframe with at least one column to identify patient ID and time if type=='longitudinal'
     param synthetic_df: real dataframe with at least one column to identify patient ID and time if type=='longitudinal'
     param patient_identifier: column name to identify different patients
-    param type: defines wether the data is longitudinal or static
+    param type: defines whether the data is longitudinal or static
 
     """
     if type not in ["static", "longitudinal"]:
