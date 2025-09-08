@@ -11,7 +11,7 @@ from plotnine import (ggplot, aes, geom_point, geom_smooth,
                       labs, scale_x_log10, scale_y_log10, facet_wrap,
                       theme, element_text, geom_text, element_blank,
                       position_dodge, position_nudge, position_jitter,
-                      theme_minimal, element_rect)
+                      theme_minimal, element_rect, scale_x_discrete)
 
 ggstyle = theme(
     axis_title=element_text(size=18),
@@ -23,7 +23,12 @@ ggstyle = theme(
 logger = logging.getLogger(__name__)
 
 
-def gof_continuous(plt_dt: pd.DataFrame, var_name: str, strat_vars: Optional[List[str]] = None, log_trans: bool = False) -> ggplot:
+def gof_continuous(
+        plt_dt: pd.DataFrame, var_name: str,
+        strat_vars: Optional[List[str]] = None,
+        log_trans: bool = False,
+        x_label: str = "Real Data",
+        y_label: str = "Synthetic Data") -> ggplot:
     """
     Generates a goodness-of-fit (GOF) plot for continuous variables using observed vs. reconstructed values.
 
@@ -34,6 +39,8 @@ def gof_continuous(plt_dt: pd.DataFrame, var_name: str, strat_vars: Optional[Lis
     :param var_name: Name of the variable to display in the plot title.
     :param strat_vars: Optional list of column names to stratify the plot using facet wrap.
     :param log_trans: Whether to apply a log10 transformation to the axes.
+    :param x_label: Label for the x-axis (default: "Real Data").
+    :param y_label: Label for the y-axis (default: "Synthetic Data").
     :return: A ggplot object representing the GOF plot.
     """
     min_val = min(plt_dt['Observed'].min(), plt_dt['Reconstructed'].min()) - 2
@@ -45,7 +52,7 @@ def gof_continuous(plt_dt: pd.DataFrame, var_name: str, strat_vars: Optional[Lis
          geom_abline(intercept=0, slope=1, color='red') +
          scale_x_continuous(limits=(min_val, max_val)) +
          scale_y_continuous(limits=(min_val, max_val)) +
-         labs(x='Observed', y='Reconstructed', title=var_name) +
+         labs(x=x_label, y=y_label, title=var_name) +
          ggstyle)
 
     if log_trans:
@@ -56,8 +63,8 @@ def gof_continuous(plt_dt: pd.DataFrame, var_name: str, strat_vars: Optional[Lis
         p = p + scale_x_log10(limits=(min_val, max_val))
         p = p + scale_y_log10(limits=(min_val, max_val))
         p = p + labs(
-            x='Observed (log scale)',
-            y='Reconstructed (log scale)',
+            x=f"{x_label} (log scale)",
+            y=f"{y_label} (log scale)",
             title=f'Log {var_name}')
 
     if strat_vars:
@@ -72,6 +79,8 @@ def gof_continuous_list(
     strat_vars: Optional[List[str]] = None,
     static: bool = False,
     log_trans: Optional[bool] = False,
+    x_label: str = "Real Data",
+    y_label: str = "Synthetic Data",
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
@@ -86,6 +95,8 @@ def gof_continuous_list(
     :param strat_vars: Optional list of column names to stratify each plot (faceted visualization).
     :param static: If True, metrics for static variables will be calculated.
     :param log_trans: If True, applies log10 transformation to both axes in the plots.
+    :param x_label: Label for the x-axis (default: "Real Data").
+    :param y_label: Label for the y-axis (default: "Synthetic Data").
     :param save_path: Optional path to a folder. If provided, saves each plot as a PNG file.
                       If not provided, plots will be shown interactively.
     :param width: Width of the saved plot in inches (used only if save_path is provided).
@@ -115,7 +126,9 @@ def gof_continuous_list(
             plt_dt=plot_data[plot_data['Variable'] == var],
             var_name=var,
             strat_vars=strat_vars,
-            log_trans=log_trans
+            log_trans=log_trans,
+            x_label=x_label,
+            y_label=y_label
         )
         gof_list[var] = plot
 
@@ -132,6 +145,8 @@ def gof_binary_list(
     dt: pd.DataFrame,
     strat_vars: Optional[List[str]] = None,
     static: bool = False,
+    x_label: str = "Real Data",
+    y_label: str = "Synthetic Data",
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
@@ -145,6 +160,8 @@ def gof_binary_list(
                and optionally stratification variables.
     :param strat_vars: Optional list of column names for stratified (faceted) plots.
     :param static: If True, metrics for static variables will be calculated.
+    :param x_label: Label for the x-axis (default: "Real Data").
+    :param y_label: Label for the y-axis (default: "Synthetic Data").
     :param save_path: Optional path to a folder. If provided, saves each plot as a PNG.
                       If not provided, plots will be shown interactively.
     :param width: Width of the saved plot in inches (used only if save_path is provided).
@@ -177,7 +194,9 @@ def gof_binary_list(
             plt_dt=plot_data[plot_data['Variable'] == var],
             var_name=var,
             strat_vars=strat_vars,
-            log_trans=False)
+            log_trans=False,
+            x_label=x_label,
+            y_label=y_label)
         gof_list[var] = plot
 
         if save_path:
@@ -195,6 +214,8 @@ def bin_traj_time_list(
     mode: str = "Reconstructed",
     dt_cs: Optional[pd.DataFrame] = None,
     strat_vars: Optional[List[str]] = None,
+    real_label: Optional[str] = "Real Data",
+    syn_label: Optional[str] = "Synthetic Data",
     time_unit: Optional[str] = "Months",
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
@@ -212,6 +233,8 @@ def bin_traj_time_list(
     :param strat_vars: Optional list of column names for stratified (faceted) plots.
     :param time_unit: A string representing the unit of time to display on the x-axis label
                   (e.g., "Months", "Days", "Hours").
+    :param real_label: Label for the real data (default: "Real Data").
+    :param syn_label: Label for the synthetic data (default: "Synthetic Data").
     :param save_path: Optional path to a folder. If provided, saves each plot as a PNG.
                       If not provided, plots will be shown interactively.
     :param width: Width of the saved plot in inches (used only if save_path is provided).
@@ -233,6 +256,10 @@ def bin_traj_time_list(
             .groupby(strat_vars + ['Variable', 'TYPE', 'TIME'])
             .agg(Rate=('DV', lambda x: 100 * (x.sum() / len(x))))
             .reset_index())
+
+    plot_data["TYPE"] = plot_data["TYPE"].replace({
+        "Observed": real_label,
+        "Reconstructed": syn_label})
 
     if dt_cs is not None:
         plot_data_cs = (dt_cs[(dt_cs["REPI"] == 1 if mode == "Reconstructed" else True) &
@@ -276,6 +303,8 @@ def bar_categorical(
     :param var_name: Name of the variable to use as title.
     :param type_: "Percentage" or "Subjects" to define the bar heights.
     :param strat_vars: Optional list of variables to use for facetting.
+    :param x_label: Label for the x-axis (default: "Real Data").
+    :param y_label: Label for the y-axis (default: "Synthetic Data").
     :return: ggplot object.
     """
 
@@ -293,9 +322,6 @@ def bar_categorical(
  
         dv_vals = sorted(df_grouped['DV'].unique())
         type_vals = sorted(df_grouped['TYPE'].unique())
-        # import ipdb; ipdb.set_trace()
- 
-        # strat_vals = sorted(df[strat_vars[0]].unique())
         strat_vals = [sorted(df[var].unique()) for var in strat_vars]
         full_index = pd.MultiIndex.from_product(
             [dv_vals, type_vals] + strat_vals,
@@ -340,6 +366,8 @@ def bar_categorical_list(
     dt_cs: Optional[pd.DataFrame] = None,
     strat_vars: Optional[List[str]] = None,
     static: bool = False,
+    real_label: Optional[str] = "Real Data",
+    syn_label: Optional[str] = "Synthetic Data",
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
@@ -353,6 +381,8 @@ def bar_categorical_list(
     :param dt_cs: Optional counterfactual DataFrame.
     :param strat_vars: Optional list of variables to use for facetting.
     :param static: If True, metrics for static variables will be calculated.
+    :param real_label: Label for the real data (default: "Real Data").
+    :param syn_label: Label for the synthetic data (default: "Synthetic Data").
     :param save_path: Optional path to folder where plots should be saved. If not provided, plots are shown.
     :param width: Width of the saved plot in inches (used only if save_path is provided).
     :param height: Height of the saved plot in inches (used only if save_path is provided).
@@ -377,6 +407,9 @@ def bar_categorical_list(
     df = df.merge(observed_keys.drop_duplicates(), on=['SUBJID', 'Variable']  + TIME_V, how='inner')
     df = df.loc[:, ["Variable", "DV", "SUBJID", "TYPE"] + TIME_V + (strat_vars or [])]
 
+    df["TYPE"] = df["TYPE"].replace({
+        "Observed": real_label,
+        "Reconstructed": syn_label})
     if dt_cs is not None:
         dt_cs = (dt_cs[(dt_cs["REPI"] == 1) &
                 (dt_cs['TYPE'].isin(["Reconstructed"])) &
@@ -475,6 +508,8 @@ def trajectory_plot_list(
     bins: Optional[np.ndarray] = None,
     dt_cs: Optional[pd.DataFrame] = None,
     strat_vars: Optional[List[str]] = None,
+    real_label: Optional[str] = "Real Data",
+    syn_label: Optional[str] = "Synthetic Data",
     time_unit: Optional[str] = "Months",
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
@@ -491,6 +526,8 @@ def trajectory_plot_list(
     :param strat_vars: Optional list of stratification variables for facetting.
     :param time_unit: A string representing the unit of time to display on the x-axis label
                   (e.g., "Months", "Days", "Hours").
+    :param real_label: Label for the real data (default: "Real Data").
+    :param syn_label: Label for the synthetic data (default: "Synthetic Data").
     :param save_path: Optional path to save plots. If None, plots are printed to console.
     :param width: Width of the saved plot in inches (used only if save_path is provided).
     :param height: Height of the saved plot in inches (used only if save_path is provided).
@@ -512,6 +549,10 @@ def trajectory_plot_list(
                     .groupby(strat_vars + ['Variable', 'TYPE', 'Visit'])
                     .agg(med=('DV', 'median'), p5=('DV', lambda x: np.percentile(x, 5)), p95=('DV', lambda x: np.percentile(x, 95)))
                     .reset_index())
+
+    plot_data["TYPE"] = plot_data["TYPE"].replace({
+        "Observed": real_label,
+        "Reconstructed": syn_label})
 
     if dt_cs is not None:
         dt_cs['Visit'] = assign_visit_absolute(dt_cs['TIME'], bins)
@@ -547,23 +588,28 @@ def trajectory_plot_list(
 def raincloud_plot(
     plt_dt: pd.DataFrame,
     var_name: str,
-    strat_vars: Optional[List[str]] = None) -> ggplot:
+    strat_vars: Optional[List[str]] = None,
+    real_label: Optional[str] = "Real Data",
+    syn_label: Optional[str] = "Synthetic Data") -> ggplot:
     """
     Generates a raincloud plot (violin + boxplot + jitter) comparing Observed vs Reconstructed data.
 
     :param dt: DataFrame with columns 'TYPE', 'DV' and optional stratification vars.
     :param var_name: Name of the variable to use as the plot title.
     :param strat_vars: Optional list of variables to use for facetting.
+    :param real_label: Label for the real data (default: "Real Data").
+    :param syn_label: Label for the synthetic data (default: "Synthetic Data").
     :return: ggplot object.
     """
-    plt_dt["TYPE"] = pd.Categorical(plt_dt["TYPE"], categories=["Observed", "Reconstructed"])
+    plt_dt["TYPE"] = pd.Categorical(plt_dt["TYPE"], categories=[real_label, syn_label])
 
     p = (
         ggplot(plt_dt, aes(x='TYPE', y='DV', fill='TYPE', color='TYPE')) +
         geom_violin(width=0.6, alpha=0.3, position=position_nudge(x=-0.2)) +  # stat_halfeye alternative
         geom_boxplot(width=0.15, outlier_shape=None, alpha=0.7) +
         geom_jitter(aes(fill='TYPE'), position=position_jitter(width=0.1), alpha=0.2, shape='o') +
-        labs(title=var_name, x=None, y=None) +
+        labs(title=var_name, x='', y='') +
+        scale_x_discrete(labels=lambda l: ['' for _ in l]) + 
         theme_minimal() +
         theme(
             legend_title=element_blank(),
@@ -590,6 +636,8 @@ def raincloud_continuous_list(
     dt: pd.DataFrame,
     static: bool = False,
     strat_vars: Optional[List[str]] = None,
+    real_label: Optional[str] = "Real Data",
+    syn_label: Optional[str] = "Synthetic Data",
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
@@ -602,6 +650,8 @@ def raincloud_continuous_list(
     :param dt: DataFrame with the columns 'REPI', 'TYPE', 'Variable', 'DV', 'SUBJID', 'TIME' and optionally others.
     :param static: If True, metrics for static variables will be calculated.
     :param strat_vars: Optional list of variables to use for facetting.
+    :param real_label: Label for the real data (default: "Real Data").
+    :param syn_label: Label for the synthetic data (default: "Synthetic Data").
     :param save_path: Optional path to folder where plots should be saved. If not provided, plots are shown.
     :param width: Width of the saved plot in inches (used only if save_path is provided).
     :param height: Height of the saved plot in inches (used only if save_path is provided).
@@ -615,21 +665,27 @@ def raincloud_continuous_list(
     else:
         col_name = 'long_cont'
         TIME_V = ['TIME']
+    strat_vars = strat_vars or []
 
     plot_list = {}
+    dt["TYPE"] = dt["TYPE"].replace({
+        "Observed": real_label,
+        "Reconstructed": syn_label})
+
     plot_data = (
-        dt[(dt["REPI"] == 1) & (dt["TYPE"].isin(["Observed", "Reconstructed"])) & (dt["Variable"].isin(rp0[col_name]))]
+        dt[(dt["REPI"] == 1) & (dt["TYPE"].isin([real_label, syn_label])) & (dt["Variable"].isin(rp0[col_name]))]
         .loc[:, ["Variable", "DV", "SUBJID", "TYPE"] + TIME_V + (strat_vars or [])]
         .pivot(index=["SUBJID", "Variable"] + TIME_V + (strat_vars or []), 
                 columns="TYPE", values="DV")
         .reset_index()
-        .dropna(subset=["Observed"])
+        .dropna(subset=[real_label])
     )
+
     for var in rp0[col_name]:
         plot = raincloud_plot(
             plt_dt=plot_data[plot_data["Variable"] == var]
             .melt(id_vars=["SUBJID", "Variable"] + TIME_V + (strat_vars or []),
-                    value_vars=["Observed", "Reconstructed"],
+                    value_vars=[real_label, syn_label],
                     var_name="TYPE",
                     value_name="DV"),
             var_name=var,

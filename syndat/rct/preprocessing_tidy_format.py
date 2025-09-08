@@ -5,6 +5,71 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+def merge_real_synthetic(
+        real_df: pd.DataFrame,
+        synthetic_df: pd.DataFrame,
+        patient_identifier: str = 'PTNO',
+        type='static') -> dict:
+    """
+    Merges a real and a synthetic dataframe with the same variable name,
+    into one dataframe, renames columns and create others for librabry
+    compability
+    param real_df: real dataframe with at least one column to identify patient ID and time if type=='longitudinal'
+    param synthetic_df: real dataframe with at least one column to identify patient ID and time if type=='longitudinal'
+    param patient_identifier: column name to identify different patients
+    param type: defines wether the data is longitudinal or static
+
+    """
+    if type not in ["static", "longitudinal"]:
+        logger.info(f"Invalid type '{type}'. Allowed values are 'static' or 'longitudinal'.")
+        raise AssertionError("Invalid value for `type`.")
+
+    for name, df in zip(['real_df', 'synthetic_df'], [real_df, synthetic_df]):
+        if type == 'longitudinal':
+            if 'TIME' not in df.columns:
+                logger.info(f"'TIME' column is required for longitudinal data in {name}.")
+                raise AssertionError("TIME column is required")
+        elif type == 'static':
+            if 'TIME' in df.columns:
+                logger.info(f"'TIME' column is NOT supported for static data in {name}.")
+                raise AssertionError("TIME column is not supported")
+        if "DRUG" not in df.columns:
+            logger.info(f"Column 'DRUG' not found in {name} — adding it with zeros for library compatibility.")
+            df["DRUG"] = 0
+        if "REPI" not in df.columns:
+            logger.info(f"Column 'REPI' not found in {name} — adding it with ones for library compatibility.")
+            df["REPI"] = 1
+
+    real_df = real_df.rename(columns={patient_identifier: 'PTNO'})
+    synthetic_df = synthetic_df.rename(columns={patient_identifier: 'PTNO'})
+
+    if type == 'longitudinal':
+        exclude_cols = {'PTNO', 'DRUG', 'REPI', 'TIME'}
+    elif type == 'static':
+        exclude_cols = {'PTNO', 'DRUG', 'REPI'}
+
+    real_mask_cols = [col for col in real_df.columns if col.startswith('MASK')]
+    synthetic_mask_cols = [col for col in synthetic_df.columns if col.startswith('MASK')]
+
+    real_vars = [col for col in real_df.columns if col not in exclude_cols and not col.startswith('MASK')]
+    synthetic_vars = [col for col in synthetic_df.columns if col not in exclude_cols and not col.startswith('MASK')]
+
+    if not real_mask_cols and not synthetic_mask_cols:
+        for col in real_vars:
+            logger.info(
+                f"Column 'MASK_{col}' not found. Assuming all time points in the real dataframe are observed. Adding column with ones.")
+            real_df[f'MASK_{col}'] = 1
+
+    real_rename = {col: f"OBS_{col}" for col in real_vars}
+    synthetic_rename = {col: f"REC_{col}" for col in synthetic_vars}
+    real_df = real_df.rename(columns=real_rename)
+    synthetic_df = synthetic_df.rename(columns=synthetic_rename)
+
+    synthetic_df = synthetic_df.drop(columns=[c for c in synthetic_mask_cols if c in synthetic_df.columns])
+    merged_df = pd.merge(real_df, synthetic_df, on=list(exclude_cols), how="inner")
+
+    return merged_df
+
 def convert_to_syndat_scores(
     df: pd.DataFrame,
     only_pos: bool = False) -> tuple[pd.DataFrame, pd.DataFrame]:

@@ -71,13 +71,19 @@ class TestPlotsRCT(unittest.TestCase):
         self.save_path = "./examples/"
         self.strat_vars=["DRUG"]
 
+    def test_exceptions_pre_processing(self):
+        with self.assertRaises(AssertionError):
+            compute_categorical_error_metrics(
+                self.rp, self.df, strat_vars=self.strat_vars, average="WEIGHTED"
+            )
+
     def test_exceptions_cat(self):
         with self.assertRaises(AssertionError):
             compute_categorical_error_metrics(
                 self.rp, self.df, strat_vars=self.strat_vars, average="WEIGHTED"
             )
 
-    def test_cat_error_metrcis(self):
+    def test_cat_error_metrics(self):
         result = compute_categorical_error_metrics(
             self.rp, self.df, strat_vars=self.strat_vars, per_time_mean=True, per_variable_mean=True)
         expected_keys = {"full", "per_time", "per_variable", "overall"}
