@@ -8,4 +8,4 @@ The rct package includes function for data evaluation of randomized clinical tri
 
    syndat.rct.metrics_rct
    syndat.rct.preprocessing_tidy_format
-   syndat.rct.visualization_clical_trials
+   syndat.rct.visualization_clinical_trials
