@@ -4,6 +4,8 @@ from syndat import visualization
 from syndat import postprocessing
 from .rct import preprocessing_tidy_format, visualization_clinical_trials, metrics_rct
 
+from ._version import __version__
+
 from .visualization import (
     plot_distributions,
     plot_correlations,
@@ -57,6 +59,8 @@ from syndat.rct.visualization_clinical_trials import (
     raincloud_continuous_list
 )
 __all__ = [
+    # package version
+    '__version__',
     # visualization
     'plot_distributions',
     'plot_correlations',
