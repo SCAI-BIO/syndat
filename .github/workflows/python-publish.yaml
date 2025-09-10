@@ -25,6 +25,7 @@ jobs:
     - name: Update package version
       run: |
         VERSION=${{ github.event.release.tag_name }}
+        sed -i 's/__version__ = ".*"/__version__ = "'${VERSION}'"/' syndat/_version.py
         poetry version $VERSION
 
     - name: Install dependencies
