@@ -33,8 +33,8 @@ st = pd.DataFrame({
 
 # Configuration
 n_patients = 20
-n_repi = 5
-n_timepoints = 4
+n_repi = 10
+n_timepoints = 10
 timepoints = np.arange(0, n_timepoints * 6, 6)  # [0, 6, 12, 18]
 Tmax = 18
 rows = []
@@ -166,7 +166,7 @@ gof_binary_list(rp, ldt, strat_vars=["DRUG"], save_path=results_path)
 bar_categorical_list(rp, ldt, strat_vars=["DRUG"], save_path=results_path)
 bar_categorical_list(rp, ldt, strat_vars=["DRUG"], type_="Subjects", save_path=results_path)
 trajectory_plot_list(rp, ldt, strat_vars=["DRUG"], save_path=results_path) 
-#raincloud_continuous_list(rp, ldt,strat_vars=["DRUG"], save_path=results_path) 
+raincloud_continuous_list(rp, ldt,strat_vars=["DRUG"], save_path=results_path) 
 print('static')
 raincloud_continuous_list(rp, sdt,static=True, save_path=results_path)
 
@@ -174,6 +174,7 @@ raincloud_continuous_list(rp, sdt,static=True, save_path=results_path)
 pbo = ldt[ldt.DRUG=="Placebo"]
 dt_cs = ldt[ldt.DRUG=="Treated"]
 dt_cs["DRUG"] = "Placebo"
+
 bar_categorical_list(rp, pbo, dt_cs=dt_cs, type_='Percentage', strat_vars=["DRUG"], save_path=results_path)
 bin_traj_time_list(rp, pbo, dt_cs=dt_cs, save_path=results_path)
 trajectory_plot_list(rp, pbo, dt_cs=dt_cs, strat_vars=["DRUG"], save_path=results_path)

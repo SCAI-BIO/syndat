@@ -662,19 +662,24 @@ def raincloud_continuous_list(
         col_name = 'long_cont'
         TIME_V = ['TIME']
     strat_vars = strat_vars or []
-    plot_data["TYPE"] = plot_data["TYPE"].replace({
-        "Observed": real_label,
-        mode: syn_label})
 
     plot_list = {}
     plot_data = (
-        dt[(dt["TYPE"].isin([real_label, syn_label])) & (dt["Variable"].isin(rp0[col_name]))]
-        .loc[:, ["Variable", "DV", "SUBJID", "TYPE"] + TIME_V + (strat_vars or [])]
-        .pivot(index=["SUBJID", "Variable"] + TIME_V + (strat_vars or []), 
-                columns="TYPE", values="DV")
+        dt[(dt["TYPE"].isin(["Observed", mode])) & (dt["Variable"].isin(rp0[col_name]))]
+        .filter(items=["Variable", "DV", "SUBJID", "REPI", "TYPE"] + TIME_V + strat_vars)
+        .pivot(
+            index=["SUBJID", "REPI", "Variable"] + TIME_V + strat_vars,
+            columns="TYPE",
+            values="DV"
+        )
         .reset_index()
-        .dropna(subset=[real_label])
+        .dropna(subset=["Observed"])
     )
+
+    plot_data = plot_data.rename(
+        columns={
+            "Observed": real_label,
+            mode: syn_label})
 
     for var in rp0[col_name]:
         plot = raincloud_plot(
