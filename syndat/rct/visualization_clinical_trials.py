@@ -24,11 +24,11 @@ logger = logging.getLogger(__name__)
 
 
 def gof_continuous(
-        plt_dt: pd.DataFrame, var_name: str,
-        strat_vars: Optional[List[str]] = None,
-        log_trans: bool = False,
-        x_label: str = "Real Data",
-        y_label: str = "Synthetic Data") -> ggplot:
+    plt_dt: pd.DataFrame, var_name: str,
+    strat_vars: Optional[List[str]] = None,
+    log_trans: bool = False,
+    x_label: str = "Real Data",
+    y_label: str = "Synthetic Data") -> ggplot:
     """
     Generates a goodness-of-fit (GOF) plot for continuous variables using observed vs. reconstructed values.
 
@@ -144,7 +144,7 @@ def gof_binary_list(
     rp0: dict,
     dt: pd.DataFrame,
     strat_vars: Optional[List[str]] = None,
-    static: bool = False,
+    static: Optional[bool] = False,
     x_label: str = "Real Data",
     y_label: str = "Synthetic Data",
     save_path: Optional[str] = None,
@@ -211,7 +211,7 @@ def gof_binary_list(
 def bin_traj_time_list(
     rp0: dict,
     dt: pd.DataFrame,
-    mode: str = "Reconstructed",
+    mode: Optional[str] = "Reconstructed",
     dt_cs: Optional[pd.DataFrame] = None,
     strat_vars: Optional[List[str]] = None,
     real_label: Optional[str] = "Real Data",
@@ -242,8 +242,6 @@ def bin_traj_time_list(
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
     :return: Dictionary mapping each variable name to its ggplot object.
     """
-    if mode not in ["Reconstructed", "Simulations"]:
-        raise ValueError(f"`mode` must be either 'Reconstructed' or 'Simulations', got '{mode}'")
 
     logger.info("This plot applies only to binary endpoints and illustrates the calibration" \
           " of the percentage of subjects who achieved the outcome value 1 (e.g., responders)" \
@@ -259,11 +257,10 @@ def bin_traj_time_list(
 
     plot_data["TYPE"] = plot_data["TYPE"].replace({
         "Observed": real_label,
-        "Reconstructed": syn_label})
+        mode: syn_label})
 
     if dt_cs is not None:
-        plot_data_cs = (dt_cs[(dt_cs["REPI"] == 1 if mode == "Reconstructed" else True) &
-                (dt_cs['TYPE'].isin([mode])) &
+        plot_data_cs = (dt_cs[(dt_cs['TYPE'].isin([mode])) &
                 (dt_cs['Variable'].isin(rp0['long_bin']))]
                 .assign(TYPE="Counterfactual")
                 .groupby(strat_vars + ['Variable', 'TYPE', 'TIME'])
@@ -362,10 +359,11 @@ def bar_categorical(
 def bar_categorical_list(
     rp0: dict,
     dt: pd.DataFrame,
-    type_: str = "Percentage",
+    mode: Optional[str] = "Reconstructed",
+    type_: Optional[str] = "Percentage",
     dt_cs: Optional[pd.DataFrame] = None,
     strat_vars: Optional[List[str]] = None,
-    static: bool = False,
+    static: Optional[bool] = False,
     real_label: Optional[str] = "Real Data",
     syn_label: Optional[str] = "Synthetic Data",
     save_path: Optional[str] = None,
@@ -377,6 +375,7 @@ def bar_categorical_list(
 
     :param rp0: Dictionary with a key 'long_cat' containing a list of categorical variable names.
     :param dt: DataFrame with the columns 'REPI', 'TYPE', 'Variable', 'DV', 'SUBJID', 'TIME' (if static = False) and optionally others.
+    :param mode: String, usually "Reconstructed", used for filtering TYPE.
     :param type_: "Percentage" or "Subjects" to define the bar heights.
     :param dt_cs: Optional counterfactual DataFrame.
     :param strat_vars: Optional list of variables to use for facetting.
@@ -400,8 +399,8 @@ def bar_categorical_list(
         if type_ != "Percentage":
             raise ValueError("When 'dt_cs' is provided, 'type_' must be 'Percentage' to allow comparison.")
 
-    df = dt[(dt["REPI"] == 1) &
-            (dt['TYPE'].isin(["Observed", "Reconstructed"])) &
+    df = dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
+            (dt['TYPE'].isin(["Observed", mode])) &
             (dt['Variable'].isin(rp0[col_name]))]
     observed_keys = df[df['TYPE'] == 'Observed'][['SUBJID', 'Variable'] + TIME_V]
     df = df.merge(observed_keys.drop_duplicates(), on=['SUBJID', 'Variable']  + TIME_V, how='inner')
@@ -409,14 +408,13 @@ def bar_categorical_list(
 
     df["TYPE"] = df["TYPE"].replace({
         "Observed": real_label,
-        "Reconstructed": syn_label})
+        mode: syn_label})
     if dt_cs is not None:
-        dt_cs = (dt_cs[(dt_cs["REPI"] == 1) &
-                (dt_cs['TYPE'].isin(["Reconstructed"])) &
+        dt_cs = (dt_cs[(dt_cs['TYPE'].isin([mode])) &
                 (dt_cs['Variable'].isin(rp0[col_name]))]
                 .assign(TYPE="Counterfactual")
                 .merge(observed_keys.drop(columns=["SUBJID"]).drop_duplicates(), on= TIME_V + ["Variable"], how="inner")
-                .reset_index())    
+                .reset_index())
         dt_cs = dt_cs.loc[:, ["Variable", "DV", "SUBJID", "TYPE"] + TIME_V + (strat_vars or [])]
         df = pd.concat([df, dt_cs])
 
@@ -504,7 +502,7 @@ def trajectory_plot(
 def trajectory_plot_list(
     rp0: dict,
     dt: pd.DataFrame,
-    mode: str = "Reconstructed",
+    mode: Optional[str] = "Reconstructed",
     bins: Optional[np.ndarray] = None,
     dt_cs: Optional[pd.DataFrame] = None,
     strat_vars: Optional[List[str]] = None,
@@ -534,8 +532,6 @@ def trajectory_plot_list(
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
     :return: Dictionary of ggplot objects keyed by variable name.
     """
-    if mode not in ["Reconstructed", "Simulations"]:
-        raise ValueError(f"`mode` must be either 'Reconstructed' or 'Simulations', got '{mode}'")
 
     if bins is None:
         logger.info("No bins were given. Using all time points")
@@ -552,12 +548,11 @@ def trajectory_plot_list(
 
     plot_data["TYPE"] = plot_data["TYPE"].replace({
         "Observed": real_label,
-        "Reconstructed": syn_label})
+        mode: syn_label})
 
     if dt_cs is not None:
         dt_cs['Visit'] = assign_visit_absolute(dt_cs['TIME'], bins)
-        plot_data_cs = (dt_cs[(dt_cs["REPI"] == 1 if mode == "Reconstructed" else True) & 
-                    (dt_cs['TYPE'].isin([mode])) & 
+        plot_data_cs = (dt_cs[(dt_cs['TYPE'].isin([mode])) & 
                     (dt_cs['Variable'].isin(rp0['long_cont']))]
                     .assign(TYPE="Counterfactual")
                     .groupby(strat_vars + ['Variable', 'TYPE', 'Visit'])
@@ -623,7 +618,6 @@ def raincloud_plot(
             strip_background=element_rect(fill="white", color="white")
         )
     )
-
     if strat_vars:
         facets = '~' + '+'.join(strat_vars)
         p += facet_wrap(facets)
@@ -634,7 +628,8 @@ def raincloud_plot(
 def raincloud_continuous_list(
     rp0: dict,
     dt: pd.DataFrame,
-    static: bool = False,
+    mode: Optional[str] = "Reconstructed",
+    static: Optional[bool] = False,
     strat_vars: Optional[List[str]] = None,
     real_label: Optional[str] = "Real Data",
     syn_label: Optional[str] = "Synthetic Data",
@@ -648,7 +643,8 @@ def raincloud_continuous_list(
 
     :param rp0: Dictionary with a key 'long_cont', 'static_cont' containing a list of continuous variable names.
     :param dt: DataFrame with the columns 'REPI', 'TYPE', 'Variable', 'DV', 'SUBJID', 'TIME' and optionally others.
-    :param static: If True, metrics for static variables will be calculated.
+    :param mode: String, usually "Reconstructed", used for filtering TYPE.
+    :param static: If True, plots for static variables will be obtained.
     :param strat_vars: Optional list of variables to use for facetting.
     :param real_label: Label for the real data (default: "Real Data").
     :param syn_label: Label for the synthetic data (default: "Synthetic Data").
@@ -666,14 +662,13 @@ def raincloud_continuous_list(
         col_name = 'long_cont'
         TIME_V = ['TIME']
     strat_vars = strat_vars or []
+    plot_data["TYPE"] = plot_data["TYPE"].replace({
+        "Observed": real_label,
+        mode: syn_label})
 
     plot_list = {}
-    dt["TYPE"] = dt["TYPE"].replace({
-        "Observed": real_label,
-        "Reconstructed": syn_label})
-
     plot_data = (
-        dt[(dt["REPI"] == 1) & (dt["TYPE"].isin([real_label, syn_label])) & (dt["Variable"].isin(rp0[col_name]))]
+        dt[(dt["TYPE"].isin([real_label, syn_label])) & (dt["Variable"].isin(rp0[col_name]))]
         .loc[:, ["Variable", "DV", "SUBJID", "TYPE"] + TIME_V + (strat_vars or [])]
         .pivot(index=["SUBJID", "Variable"] + TIME_V + (strat_vars or []), 
                 columns="TYPE", values="DV")
@@ -689,7 +684,9 @@ def raincloud_continuous_list(
                     var_name="TYPE",
                     value_name="DV"),
             var_name=var,
-            strat_vars=strat_vars
+            strat_vars=strat_vars,
+            real_label=real_label,
+            syn_label=syn_label
         )
         plot_list[var] = plot
 

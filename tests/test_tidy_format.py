@@ -147,6 +147,13 @@ class TestTidyFormat(unittest.TestCase):
         rp_ = get_rp(self.ldt, self.lt, self.st)
         self.assertIsNotNone(rp_)
 
+        with self.assertRaises(AssertionError):
+            get_rp(self.ldt, None, None)
+        with self.assertRaises(AssertionError):
+            get_rp(ldt=None, lt=self.lt, Tmax=None)
+        with self.assertRaises(AssertionError):
+            get_rp(self.ldt.drop(columns=["TIME"]), self.lt)
+
     def test_convert_data_to_syndat_scores(self):
         ldt_ = convert_to_syndat_scores(self.ldt)
         self.assertIsNotNone(ldt_)
