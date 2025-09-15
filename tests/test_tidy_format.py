@@ -146,6 +146,10 @@ class TestTidyFormat(unittest.TestCase):
     def test_get_rp(self):
         rp_ = get_rp(self.ldt, self.lt, self.st)
         self.assertIsNotNone(rp_)
+        
+        ldt = self.ldt.drop(columns=["TIME"])
+        rp_ = get_rp(ldt,Tmax=self.ldt.TIME.max())
+        self.assertIsNotNone(rp_)
 
         with self.assertRaises(AssertionError):
             get_rp(self.ldt, None, None)

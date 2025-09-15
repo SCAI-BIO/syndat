@@ -400,7 +400,7 @@ def bar_categorical_list(
 
     if dt_cs is not None:
         if type_ != "Percentage":
-            raise ValueError("When 'dt_cs' is provided, 'type_' must be 'Percentage' to allow comparison.")
+            raise AssertionError("When 'dt_cs' is provided, 'type_' must be 'Percentage' to allow comparison.")
 
     df = dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
             (dt['TYPE'].isin(["Observed", mode])) &
