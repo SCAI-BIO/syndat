@@ -103,25 +103,35 @@ def convert_to_syndat_scores(
     return observed_df, predictions_df
 
 def get_rp(
-    ldt: pd.DataFrame,
+    ldt: Optional[pd.DataFrame] = None,
     lt: Optional[pd.DataFrame] = None,
-    st: Optional[pd.DataFrame] = None) -> dict:
+    st: Optional[pd.DataFrame] = None,
+    Tmax: Optional[int] = None) -> dict:
     """
     Creates a dictionary with static and longitudinal variable names categorized by type (categorical, continuous),
     and computes the maximum time value.
 
-    :param ldt: Longitudinal DataFrame containing at least a 'TIME' column.
+    :param ldt: Longitudinal DataFrame containing at 'TIME' column.
     :param lt: Longitudinal variables metadata DataFrame with columns 'Variable', 'Type', and 'Cats'.
     :param st: Static variables metadata DataFrame with columns 'Variable' and 'Type'.
+    :param Tmax: Optional maximum time value (required if lt is provided but ldt is not).
     :return: Dictionary with keys: 'Tmax', 'static_vnames', 'static_cat', 'static_cont',
              'long_vnames', 'long_cat', 'long_bin', 'long_cont', each mapping to lists of variable names.
     """
 
     if lt is None and st is None:
-        raise ValueError("At least one of 'lt' or 'st' must be provided.")
+        raise AssertionError("At least one of 'lt' or 'st' must be provided.")
+
+    if lt is not None and ldt is None and Tmax is None:
+        raise AssertionError("If 'lt' is provided, you must also provide either 'ldt' or 'Tmax'.")
 
     rp = {}
-    rp['Tmax'] = ldt.TIME.max()
+    if ldt is not None:
+        if "TIME" not in ldt.columns:
+            raise AssertionError("'ldt' must contain a 'TIME' column.")
+        rp["Tmax"] = ldt.TIME.max()
+    else:
+        rp["Tmax"] = Tmax
 
     if st is not None:
         rp["static_vnames"] = st["Variable"].dropna().unique().tolist()

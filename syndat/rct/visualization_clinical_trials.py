@@ -17,18 +17,19 @@ ggstyle = theme(
     axis_title=element_text(size=18),
     axis_text=element_text(size=18),
     plot_title=element_text(size=18, ha='center'),
-    strip_text=element_text(size=18)
-)
+    strip_text=element_text(size=18),
+    legend_title=element_blank(),
+    legend_position="top")
 
 logger = logging.getLogger(__name__)
 
 
 def gof_continuous(
-        plt_dt: pd.DataFrame, var_name: str,
-        strat_vars: Optional[List[str]] = None,
-        log_trans: bool = False,
-        x_label: str = "Real Data",
-        y_label: str = "Synthetic Data") -> ggplot:
+    plt_dt: pd.DataFrame, var_name: str,
+    strat_vars: Optional[List[str]] = None,
+    log_trans: bool = False,
+    x_label: str = "Real Data",
+    y_label: str = "Synthetic Data") -> ggplot:
     """
     Generates a goodness-of-fit (GOF) plot for continuous variables using observed vs. reconstructed values.
 
@@ -76,11 +77,12 @@ def gof_continuous(
 def gof_continuous_list(
     rp0: dict,
     dt: pd.DataFrame,
+    mode: Optional[str] = "Reconstructed",
     strat_vars: Optional[List[str]] = None,
-    static: bool = False,
+    static: Optional[bool] = False,
     log_trans: Optional[bool] = False,
-    x_label: str = "Real Data",
-    y_label: str = "Synthetic Data",
+    x_label: Optional[str] = "Real Data",
+    y_label: Optional[str] = "Synthetic Data",
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
@@ -112,7 +114,7 @@ def gof_continuous_list(
         TIME_V = ['TIME']
 
     plot_data = (dt[(dt['REPI'] == 1) &
-                    (dt['TYPE'].isin(["Observed", "Reconstructed"])) &
+                    (dt['TYPE'].isin(["Observed", mode])) &
                     (dt['Variable'].isin(rp0[col_name]))]
                     .loc[:, ["Variable", "DV", "SUBJID", "TYPE"] + TIME_V + (strat_vars or [])]
                     .pivot_table(index=["SUBJID", "Variable"] + TIME_V + (strat_vars or []),
@@ -134,7 +136,7 @@ def gof_continuous_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_%sgof_plot.png'%(var,log_name))
+            filename = os.path.join(save_path, '%s_%s_%sgof_plot.png'%(mode,var,log_name))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -143,10 +145,11 @@ def gof_continuous_list(
 def gof_binary_list(
     rp0: dict,
     dt: pd.DataFrame,
+    mode: Optional[str] = "Reconstructed",
     strat_vars: Optional[List[str]] = None,
-    static: bool = False,
-    x_label: str = "Real Data",
-    y_label: str = "Synthetic Data",
+    static: Optional[bool] = False,
+    x_label: Optional[str] = "Real Data",
+    y_label: Optional[str] = "Synthetic Data",
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
@@ -179,7 +182,7 @@ def gof_binary_list(
     logger.info("This plot applies only to binary endpoints and illustrates the calibration"
           " of the percentage of subjects who achieved the outcome value 1 (e.g., responders).")
     df = dt[(dt["REPI"] == 1) &
-            (dt['TYPE'].isin(["Observed", "Reconstructed"])) &
+            (dt['TYPE'].isin(["Observed", mode])) &
             (dt['Variable'].isin(rp0[col_name]))]
     observed_keys = df[df['TYPE'] == 'Observed'][['SUBJID', 'Variable'] + TIME_V]
     df = df.merge(observed_keys.drop_duplicates(), on=['SUBJID', 'Variable'] + TIME_V, how='inner')
@@ -201,7 +204,7 @@ def gof_binary_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_gof_bin_plot.png'%(var))
+            filename = os.path.join(save_path, '%s_%s_gof_bin_plot.png'%(mode,var))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -211,7 +214,7 @@ def gof_binary_list(
 def bin_traj_time_list(
     rp0: dict,
     dt: pd.DataFrame,
-    mode: str = "Reconstructed",
+    mode: Optional[str] = "Reconstructed",
     dt_cs: Optional[pd.DataFrame] = None,
     strat_vars: Optional[List[str]] = None,
     real_label: Optional[str] = "Real Data",
@@ -242,8 +245,6 @@ def bin_traj_time_list(
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
     :return: Dictionary mapping each variable name to its ggplot object.
     """
-    if mode not in ["Reconstructed", "Simulations"]:
-        raise ValueError(f"`mode` must be either 'Reconstructed' or 'Simulations', got '{mode}'")
 
     logger.info("This plot applies only to binary endpoints and illustrates the calibration" \
           " of the percentage of subjects who achieved the outcome value 1 (e.g., responders)" \
@@ -259,11 +260,10 @@ def bin_traj_time_list(
 
     plot_data["TYPE"] = plot_data["TYPE"].replace({
         "Observed": real_label,
-        "Reconstructed": syn_label})
+        mode: syn_label})
 
     if dt_cs is not None:
-        plot_data_cs = (dt_cs[(dt_cs["REPI"] == 1 if mode == "Reconstructed" else True) &
-                (dt_cs['TYPE'].isin([mode])) &
+        plot_data_cs = (dt_cs[(dt_cs['TYPE'].isin([mode])) &
                 (dt_cs['Variable'].isin(rp0['long_bin']))]
                 .assign(TYPE="Counterfactual")
                 .groupby(strat_vars + ['Variable', 'TYPE', 'TIME'])
@@ -284,7 +284,7 @@ def bin_traj_time_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_%sbin_time_plot.png'%(var,cs_name))
+            filename = os.path.join(save_path, '%s_%s_%sbin_time_plot.png'%(mode,var,cs_name))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -362,10 +362,11 @@ def bar_categorical(
 def bar_categorical_list(
     rp0: dict,
     dt: pd.DataFrame,
-    type_: str = "Percentage",
+    mode: Optional[str] = "Reconstructed",
+    type_: Optional[str] = "Percentage",
     dt_cs: Optional[pd.DataFrame] = None,
     strat_vars: Optional[List[str]] = None,
-    static: bool = False,
+    static: Optional[bool] = False,
     real_label: Optional[str] = "Real Data",
     syn_label: Optional[str] = "Synthetic Data",
     save_path: Optional[str] = None,
@@ -377,6 +378,7 @@ def bar_categorical_list(
 
     :param rp0: Dictionary with a key 'long_cat' containing a list of categorical variable names.
     :param dt: DataFrame with the columns 'REPI', 'TYPE', 'Variable', 'DV', 'SUBJID', 'TIME' (if static = False) and optionally others.
+    :param mode: String, usually "Reconstructed", used for filtering TYPE.
     :param type_: "Percentage" or "Subjects" to define the bar heights.
     :param dt_cs: Optional counterfactual DataFrame.
     :param strat_vars: Optional list of variables to use for facetting.
@@ -398,10 +400,10 @@ def bar_categorical_list(
 
     if dt_cs is not None:
         if type_ != "Percentage":
-            raise ValueError("When 'dt_cs' is provided, 'type_' must be 'Percentage' to allow comparison.")
+            raise AssertionError("When 'dt_cs' is provided, 'type_' must be 'Percentage' to allow comparison.")
 
-    df = dt[(dt["REPI"] == 1) &
-            (dt['TYPE'].isin(["Observed", "Reconstructed"])) &
+    df = dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
+            (dt['TYPE'].isin(["Observed", mode])) &
             (dt['Variable'].isin(rp0[col_name]))]
     observed_keys = df[df['TYPE'] == 'Observed'][['SUBJID', 'Variable'] + TIME_V]
     df = df.merge(observed_keys.drop_duplicates(), on=['SUBJID', 'Variable']  + TIME_V, how='inner')
@@ -409,14 +411,13 @@ def bar_categorical_list(
 
     df["TYPE"] = df["TYPE"].replace({
         "Observed": real_label,
-        "Reconstructed": syn_label})
+        mode: syn_label})
     if dt_cs is not None:
-        dt_cs = (dt_cs[(dt_cs["REPI"] == 1) &
-                (dt_cs['TYPE'].isin(["Reconstructed"])) &
+        dt_cs = (dt_cs[(dt_cs['TYPE'].isin([mode])) &
                 (dt_cs['Variable'].isin(rp0[col_name]))]
                 .assign(TYPE="Counterfactual")
                 .merge(observed_keys.drop(columns=["SUBJID"]).drop_duplicates(), on= TIME_V + ["Variable"], how="inner")
-                .reset_index())    
+                .reset_index())
         dt_cs = dt_cs.loc[:, ["Variable", "DV", "SUBJID", "TYPE"] + TIME_V + (strat_vars or [])]
         df = pd.concat([df, dt_cs])
 
@@ -436,7 +437,7 @@ def bar_categorical_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_%sbar_cat_%s_plot.png'%(var,cs_name,name_))
+            filename = os.path.join(save_path, '%s_%s_%sbar_cat_%s_plot.png'%(mode,var,cs_name,name_))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -485,15 +486,13 @@ def trajectory_plot(
             geom_line(size=1) +
             labs(x=f"Time ({time_unit})", y="Percentage of subjects who achieved outcome",
                  title=var_name, fill=None, color=None) +
-            coord_cartesian() +
-            theme(legend_title=element_blank(), legend_position="top"))
+            coord_cartesian() + ggstyle)
     else:
         p = (ggplot(plt_dt, aes(x='Visit', y='med', color='TYPE', group='TYPE')) +
             geom_ribbon(aes(ymin='p5', ymax='p95', fill='TYPE'), alpha=0.2) +
             geom_line(size=1) +
             labs(x=f"Time ({time_unit})", y="Value", title=var_name, fill=None, color=None) +
-            coord_cartesian() +
-            theme(legend_title=element_blank(), legend_position="top"))
+            coord_cartesian() + ggstyle)
 
     if strat_vars:
         facets = '~' + '+'.join(strat_vars)
@@ -504,7 +503,7 @@ def trajectory_plot(
 def trajectory_plot_list(
     rp0: dict,
     dt: pd.DataFrame,
-    mode: str = "Reconstructed",
+    mode: Optional[str] = "Reconstructed",
     bins: Optional[np.ndarray] = None,
     dt_cs: Optional[pd.DataFrame] = None,
     strat_vars: Optional[List[str]] = None,
@@ -534,8 +533,6 @@ def trajectory_plot_list(
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
     :return: Dictionary of ggplot objects keyed by variable name.
     """
-    if mode not in ["Reconstructed", "Simulations"]:
-        raise ValueError(f"`mode` must be either 'Reconstructed' or 'Simulations', got '{mode}'")
 
     if bins is None:
         logger.info("No bins were given. Using all time points")
@@ -552,12 +549,11 @@ def trajectory_plot_list(
 
     plot_data["TYPE"] = plot_data["TYPE"].replace({
         "Observed": real_label,
-        "Reconstructed": syn_label})
+        mode: syn_label})
 
     if dt_cs is not None:
         dt_cs['Visit'] = assign_visit_absolute(dt_cs['TIME'], bins)
-        plot_data_cs = (dt_cs[(dt_cs["REPI"] == 1 if mode == "Reconstructed" else True) & 
-                    (dt_cs['TYPE'].isin([mode])) & 
+        plot_data_cs = (dt_cs[(dt_cs['TYPE'].isin([mode])) & 
                     (dt_cs['Variable'].isin(rp0['long_cont']))]
                     .assign(TYPE="Counterfactual")
                     .groupby(strat_vars + ['Variable', 'TYPE', 'Visit'])
@@ -577,7 +573,7 @@ def trajectory_plot_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_%strajectory_plot.png'%(var,cs_name))
+            filename = os.path.join(save_path, '%s_%s_%strajectory_plot.png'%(mode,var,cs_name))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -610,20 +606,15 @@ def raincloud_plot(
         geom_jitter(aes(fill='TYPE'), position=position_jitter(width=0.1), alpha=0.2, shape='o') +
         labs(title=var_name, x='', y='') +
         scale_x_discrete(labels=lambda l: ['' for _ in l]) + 
-        theme_minimal() +
+        theme_minimal() + 
+        ggstyle +
         theme(
-            legend_title=element_blank(),
-            legend_position='top',
-            plot_title=element_text(size=18, ha='center'),
-            axis_text=element_text(size=14),
-            axis_title=element_text(size=16),
             panel_background=element_rect(fill="white", colour="white"),
             plot_background=element_rect(fill="white", colour="white"),
             legend_background=element_rect(fill="white", colour="white"),
             strip_background=element_rect(fill="white", color="white")
         )
     )
-
     if strat_vars:
         facets = '~' + '+'.join(strat_vars)
         p += facet_wrap(facets)
@@ -634,7 +625,8 @@ def raincloud_plot(
 def raincloud_continuous_list(
     rp0: dict,
     dt: pd.DataFrame,
-    static: bool = False,
+    mode: Optional[str] = "Reconstructed",
+    static: Optional[bool] = False,
     strat_vars: Optional[List[str]] = None,
     real_label: Optional[str] = "Real Data",
     syn_label: Optional[str] = "Synthetic Data",
@@ -648,7 +640,8 @@ def raincloud_continuous_list(
 
     :param rp0: Dictionary with a key 'long_cont', 'static_cont' containing a list of continuous variable names.
     :param dt: DataFrame with the columns 'REPI', 'TYPE', 'Variable', 'DV', 'SUBJID', 'TIME' and optionally others.
-    :param static: If True, metrics for static variables will be calculated.
+    :param mode: String, usually "Reconstructed", used for filtering TYPE.
+    :param static: If True, plots for static variables will be obtained.
     :param strat_vars: Optional list of variables to use for facetting.
     :param real_label: Label for the real data (default: "Real Data").
     :param syn_label: Label for the synthetic data (default: "Synthetic Data").
@@ -668,18 +661,22 @@ def raincloud_continuous_list(
     strat_vars = strat_vars or []
 
     plot_list = {}
-    dt["TYPE"] = dt["TYPE"].replace({
-        "Observed": real_label,
-        "Reconstructed": syn_label})
-
     plot_data = (
-        dt[(dt["REPI"] == 1) & (dt["TYPE"].isin([real_label, syn_label])) & (dt["Variable"].isin(rp0[col_name]))]
-        .loc[:, ["Variable", "DV", "SUBJID", "TYPE"] + TIME_V + (strat_vars or [])]
-        .pivot(index=["SUBJID", "Variable"] + TIME_V + (strat_vars or []), 
-                columns="TYPE", values="DV")
+        dt[(dt["TYPE"].isin(["Observed", mode])) & (dt["Variable"].isin(rp0[col_name]))]
+        .filter(items=["Variable", "DV", "SUBJID", "REPI", "TYPE"] + TIME_V + strat_vars)
+        .pivot(
+            index=["SUBJID", "REPI", "Variable"] + TIME_V + strat_vars,
+            columns="TYPE",
+            values="DV"
+        )
         .reset_index()
-        .dropna(subset=[real_label])
+        .dropna(subset=["Observed"])
     )
+
+    plot_data = plot_data.rename(
+        columns={
+            "Observed": real_label,
+            mode: syn_label})
 
     for var in rp0[col_name]:
         plot = raincloud_plot(
@@ -689,13 +686,15 @@ def raincloud_continuous_list(
                     var_name="TYPE",
                     value_name="DV"),
             var_name=var,
-            strat_vars=strat_vars
+            strat_vars=strat_vars,
+            real_label=real_label,
+            syn_label=syn_label
         )
         plot_list[var] = plot
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_raincloud_plot.png'%(var))
+            filename = os.path.join(save_path, '%s_%s_raincloud_plot.png'%(mode,var))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)

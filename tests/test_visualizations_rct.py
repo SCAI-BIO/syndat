@@ -71,6 +71,10 @@ class TestPlotsRCT(unittest.TestCase):
         self.save_path = "./examples/"
         self.strat_vars=["DRUG"]
 
+        self.pbo = self.df[self.df.DRUG == 0]
+        self.dt_cs = self.df[self.df.DRUG == 1]
+        self.dt_cs["DRUG"] = 0        
+
     def test_exceptions_pre_processing(self):
         with self.assertRaises(AssertionError):
             compute_categorical_error_metrics(
@@ -119,7 +123,6 @@ class TestPlotsRCT(unittest.TestCase):
         for key in expected_keys:
             self.assertIsInstance(result[key], pd.DataFrame, f"{key} is not a DataFrame")
             self.assertFalse(result[key].empty, f"{key} DataFrame is empty")
-
 
     def test_cont_error_metrcis(self):
         result = compute_continuous_error_metrics(
@@ -190,37 +193,53 @@ class TestPlotsRCT(unittest.TestCase):
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('bin_time_plot.png')]
         self.assertTrue(len(png_files) > 0, "Binary time plot files were not created.")
 
+        bin_traj_time_list(self.rp, self.pbo, dt_cs=self.dt_cs, save_path=self.save_path)
+        png_files = [f for f in os.listdir(self.save_path) if f.endswith('bin_time_plot.png')]
+        self.assertTrue(len(png_files) > 0, "Counterfactuak binary time plot files were not created.")
+
     def test_gof_categorical_list(self):
+
+        with self.assertRaises(AssertionError):
+            bar_categorical_list(self.rp, self.df, type_='Subjects', dt_cs=self.df)
+
+        bar_categorical_list(self.rp, self.pbo, dt_cs=self.dt_cs, save_path=self.save_path)
+        png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
+        self.assertTrue(len(png_files) > 0, "Counterfactual Categorical time plot files were not created.")
+
         bar_categorical_list(self.rp, self.df, strat_vars=["DRUG"], save_path=self.save_path)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
-        self.assertTrue(len(png_files) > 0, "Categorical GOF plot files were not created.")
+        self.assertTrue(len(png_files) > 0, "Categorical plot files were not created.")
 
         bar_categorical_list(self.rp, self.df, strat_vars=["DRUG","TIME"], save_path=self.save_path)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
-        self.assertTrue(len(png_files) > 0, "Categorical GOF plot files were not created.")
+        self.assertTrue(len(png_files) > 0, "Categorical plot files were not created.")
 
         bar_categorical_list(self.rp, self.df, save_path=self.save_path)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
-        self.assertTrue(len(png_files) > 0, "Categorical GOF plot files were not created.")
+        self.assertTrue(len(png_files) > 0, "Categorical plot files were not created.")
 
         bar_categorical_list(self.rp, self.sdf, strat_vars=["DRUG"], static=True, save_path=self.save_path)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
-        self.assertTrue(len(png_files) > 0, "Categorical GOF plot files were not created.")
+        self.assertTrue(len(png_files) > 0, "Categorical plot files were not created.")
 
         bar_categorical_list(self.rp, self.sdf, static=True, save_path=self.save_path)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
-        self.assertTrue(len(png_files) > 0, "Categorical GOF plot files were not created.")
+        self.assertTrue(len(png_files) > 0, "Categorical plot files were not created.")
 
     def test_gof_categorical_list2(self):
         bar_categorical_list(self.rp, self.df, type_="Subjects", strat_vars=["DRUG","TIME"], save_path=self.save_path)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_subj_plot.png')]
-        self.assertTrue(len(png_files) > 0, "Categorical GOF plot files were not created.")
+        self.assertTrue(len(png_files) > 0, "Categorical plot files were not created.")
 
         bar_categorical_list(self.rp, self.sdf, type_="Subjects", strat_vars=["DRUG"], static=True, save_path=self.save_path)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_subj_plot.png')]
-        self.assertTrue(len(png_files) > 0, "Categorical GOF plot files were not created.")
+        self.assertTrue(len(png_files) > 0, "Categorical plot files were not created.")
 
     def test_trajectory_plot_list(self):
+        trajectory_plot_list(self.rp, self.pbo, dt_cs=self.dt_cs, save_path=self.save_path)
+        png_files = [f for f in os.listdir(self.save_path) if f.endswith('trajectory_plot.png')]
+        self.assertTrue(len(png_files) > 0, "Counterfactual Trajectory plot files were not created.")
+
         trajectory_plot_list(self.rp, self.df, strat_vars=["DRUG"], save_path=self.save_path)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('trajectory_plot.png')]
         self.assertTrue(len(png_files) > 0, "Trajectory plot files were not created.")
