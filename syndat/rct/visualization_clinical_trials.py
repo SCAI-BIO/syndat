@@ -17,8 +17,9 @@ ggstyle = theme(
     axis_title=element_text(size=18),
     axis_text=element_text(size=18),
     plot_title=element_text(size=18, ha='center'),
-    strip_text=element_text(size=18)
-)
+    strip_text=element_text(size=18),
+    legend_title=element_blank(),
+    legend_position="top")
 
 logger = logging.getLogger(__name__)
 
@@ -76,11 +77,12 @@ def gof_continuous(
 def gof_continuous_list(
     rp0: dict,
     dt: pd.DataFrame,
+    mode: Optional[str] = "Reconstructed",
     strat_vars: Optional[List[str]] = None,
-    static: bool = False,
+    static: Optional[bool] = False,
     log_trans: Optional[bool] = False,
-    x_label: str = "Real Data",
-    y_label: str = "Synthetic Data",
+    x_label: Optional[str] = "Real Data",
+    y_label: Optional[str] = "Synthetic Data",
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
@@ -112,7 +114,7 @@ def gof_continuous_list(
         TIME_V = ['TIME']
 
     plot_data = (dt[(dt['REPI'] == 1) &
-                    (dt['TYPE'].isin(["Observed", "Reconstructed"])) &
+                    (dt['TYPE'].isin(["Observed", mode])) &
                     (dt['Variable'].isin(rp0[col_name]))]
                     .loc[:, ["Variable", "DV", "SUBJID", "TYPE"] + TIME_V + (strat_vars or [])]
                     .pivot_table(index=["SUBJID", "Variable"] + TIME_V + (strat_vars or []),
@@ -134,7 +136,7 @@ def gof_continuous_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_%sgof_plot.png'%(var,log_name))
+            filename = os.path.join(save_path, '%s_%s_%sgof_plot.png'%(mode,var,log_name))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -143,10 +145,11 @@ def gof_continuous_list(
 def gof_binary_list(
     rp0: dict,
     dt: pd.DataFrame,
+    mode: Optional[str] = "Reconstructed",
     strat_vars: Optional[List[str]] = None,
     static: Optional[bool] = False,
-    x_label: str = "Real Data",
-    y_label: str = "Synthetic Data",
+    x_label: Optional[str] = "Real Data",
+    y_label: Optional[str] = "Synthetic Data",
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
@@ -179,7 +182,7 @@ def gof_binary_list(
     logger.info("This plot applies only to binary endpoints and illustrates the calibration"
           " of the percentage of subjects who achieved the outcome value 1 (e.g., responders).")
     df = dt[(dt["REPI"] == 1) &
-            (dt['TYPE'].isin(["Observed", "Reconstructed"])) &
+            (dt['TYPE'].isin(["Observed", mode])) &
             (dt['Variable'].isin(rp0[col_name]))]
     observed_keys = df[df['TYPE'] == 'Observed'][['SUBJID', 'Variable'] + TIME_V]
     df = df.merge(observed_keys.drop_duplicates(), on=['SUBJID', 'Variable'] + TIME_V, how='inner')
@@ -201,7 +204,7 @@ def gof_binary_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_gof_bin_plot.png'%(var))
+            filename = os.path.join(save_path, '%s_%s_gof_bin_plot.png'%(mode,var))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -281,7 +284,7 @@ def bin_traj_time_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_%sbin_time_plot.png'%(var,cs_name))
+            filename = os.path.join(save_path, '%s_%s_%sbin_time_plot.png'%(mode,var,cs_name))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -434,7 +437,7 @@ def bar_categorical_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_%sbar_cat_%s_plot.png'%(var,cs_name,name_))
+            filename = os.path.join(save_path, '%s_%s_%sbar_cat_%s_plot.png'%(mode,var,cs_name,name_))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -483,15 +486,13 @@ def trajectory_plot(
             geom_line(size=1) +
             labs(x=f"Time ({time_unit})", y="Percentage of subjects who achieved outcome",
                  title=var_name, fill=None, color=None) +
-            coord_cartesian() +
-            theme(legend_title=element_blank(), legend_position="top"))
+            coord_cartesian() + ggstyle)
     else:
         p = (ggplot(plt_dt, aes(x='Visit', y='med', color='TYPE', group='TYPE')) +
             geom_ribbon(aes(ymin='p5', ymax='p95', fill='TYPE'), alpha=0.2) +
             geom_line(size=1) +
             labs(x=f"Time ({time_unit})", y="Value", title=var_name, fill=None, color=None) +
-            coord_cartesian() +
-            theme(legend_title=element_blank(), legend_position="top"))
+            coord_cartesian() + ggstyle)
 
     if strat_vars:
         facets = '~' + '+'.join(strat_vars)
@@ -572,7 +573,7 @@ def trajectory_plot_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_%strajectory_plot.png'%(var,cs_name))
+            filename = os.path.join(save_path, '%s_%s_%strajectory_plot.png'%(mode,var,cs_name))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -605,13 +606,9 @@ def raincloud_plot(
         geom_jitter(aes(fill='TYPE'), position=position_jitter(width=0.1), alpha=0.2, shape='o') +
         labs(title=var_name, x='', y='') +
         scale_x_discrete(labels=lambda l: ['' for _ in l]) + 
-        theme_minimal() +
+        theme_minimal() + 
+        ggstyle +
         theme(
-            legend_title=element_blank(),
-            legend_position='top',
-            plot_title=element_text(size=18, ha='center'),
-            axis_text=element_text(size=14),
-            axis_title=element_text(size=16),
             panel_background=element_rect(fill="white", colour="white"),
             plot_background=element_rect(fill="white", colour="white"),
             legend_background=element_rect(fill="white", colour="white"),
@@ -697,7 +694,7 @@ def raincloud_continuous_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_raincloud_plot.png'%(var))
+            filename = os.path.join(save_path, '%s_%s_raincloud_plot.png'%(mode,var))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
