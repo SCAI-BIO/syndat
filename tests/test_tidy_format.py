@@ -142,13 +142,10 @@ class TestTidyFormat(unittest.TestCase):
             merge_real_synthetic(real_sdf_time, synthetic_sdf_time,
                                  patient_identifier='PTNO', type='random')
 
-
     def test_get_rp(self):
         rp_ = get_rp(self.ldt, self.lt, self.st)
         self.assertIsNotNone(rp_)
-        
-        ldt = self.ldt.drop(columns=["TIME"])
-        rp_ = get_rp(ldt,Tmax=self.ldt.TIME.max())
+        rp_ = get_rp(st=self.st)
         self.assertIsNotNone(rp_)
 
         with self.assertRaises(AssertionError):
