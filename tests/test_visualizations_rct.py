@@ -200,6 +200,9 @@ class TestPlotsRCT(unittest.TestCase):
     def test_gof_categorical_list(self):
 
         with self.assertRaises(AssertionError):
+            bar_categorical_list(self.rp, self.df, type_='all')
+
+        with self.assertRaises(AssertionError):
             bar_categorical_list(self.rp, self.df, type_='Subjects', dt_cs=self.df)
 
         bar_categorical_list(self.rp, self.pbo, dt_cs=self.dt_cs, save_path=self.save_path)

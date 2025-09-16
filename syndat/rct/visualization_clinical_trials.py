@@ -341,14 +341,14 @@ def bar_categorical(
     if type_ == "Percentage":
         p = (ggplot(df, aes(x='DV', y='PERC', fill='TYPE')) +
              geom_bar(stat='identity', position=position_dodge(width=1)) +
-             geom_text(aes(label='round(PERC, 1)', y='PERC + 5'),
+             geom_text(aes(label='round(PERC, 1)', y='PERC + 2'),
                        position=position_dodge(width=1)) +
              labs(x='', y='Percentage of subjects (%)', title=var_name) +
              ggstyle)
     elif type_ == "Subjects":
         p = (ggplot(df, aes(x='DV', y='N', fill='TYPE')) +
              geom_bar(stat='identity', position=position_dodge(width=1)) +
-             geom_text(aes(label='N', y='N + 5'),
+             geom_text(aes(label='N', y='N + 10'),
                        position=position_dodge(width=1)) +
              labs(x='', y='Number of subjects', title=var_name) +
              ggstyle)
@@ -391,16 +391,21 @@ def bar_categorical_list(
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
     :return: Dictionary of ggplot objects keyed by variable name.
     """
+
+    if type_ not in ["Percentage", "Subjects"]:
+        logger.info(f"Invalid type '{type}'. Allowed values are 'Percentage' or 'Subjects'.")
+        raise AssertionError("Invalid value for `type`.")
+
+    if dt_cs is not None:
+        if type_ != "Percentage":
+            raise AssertionError("When 'dt_cs' is provided, 'type_' must be 'Percentage' to allow comparison.")
+
     if static:
         col_name = 'static_cat'
         TIME_V = []
     else:
         col_name = 'long_cat'
         TIME_V = ['TIME']
-
-    if dt_cs is not None:
-        if type_ != "Percentage":
-            raise AssertionError("When 'dt_cs' is provided, 'type_' must be 'Percentage' to allow comparison.")
 
     df = dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
             (dt['TYPE'].isin(["Observed", mode])) &
