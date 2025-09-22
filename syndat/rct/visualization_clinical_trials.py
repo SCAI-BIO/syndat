@@ -2,6 +2,7 @@ import logging
 import os
 from typing import List, Optional, Dict, Union
 
+import re
 import numpy as np
 import pandas as pd
 from plotnine import (ggplot, aes, geom_point, geom_smooth,
@@ -136,7 +137,8 @@ def gof_continuous_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_%s_%sgof_plot.png'%(mode,var,log_name))
+            save_var = re.sub(r'[\/:*?"<>|]', "_", var)
+            filename = os.path.join(save_path, '%s_%s_%sgof_plot.png'%(mode,save_var,log_name))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -204,7 +206,8 @@ def gof_binary_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_%s_gof_bin_plot.png'%(mode,var))
+            save_var = re.sub(r'[\/:*?"<>|]', "_", var)
+            filename = os.path.join(save_path, '%s_%s_gof_bin_plot.png'%(mode,save_var))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -284,7 +287,8 @@ def bin_traj_time_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_%s_%sbin_time_plot.png'%(mode,var,cs_name))
+            save_var = re.sub(r'[\/:*?"<>|]', "_", var)
+            filename = os.path.join(save_path, '%s_%s_%sbin_time_plot.png'%(mode,save_var,cs_name))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -355,8 +359,11 @@ def bar_categorical(
 
     if strat_vars:
         facets = '~' + '+'.join(strat_vars)
-        p += facet_wrap(facets)
-
+        if df['DV'].nunique() > 10:  
+            p += facet_wrap(facets, ncol=1)
+        else:
+            p += facet_wrap(facets)
+            
     return p
 
 def bar_categorical_list(
@@ -442,7 +449,8 @@ def bar_categorical_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_%s_%sbar_cat_%s_plot.png'%(mode,var,cs_name,name_))
+            save_var = re.sub(r'[\/:*?"<>|]', "_", var)
+            filename = os.path.join(save_path, '%s_%s_%sbar_cat_%s_plot.png'%(mode,save_var,cs_name,name_))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -578,7 +586,8 @@ def trajectory_plot_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_%s_%strajectory_plot.png'%(mode,var,cs_name))
+            save_var = re.sub(r'[\/:*?"<>|]', "_", var)
+            filename = os.path.join(save_path, '%s_%s_%strajectory_plot.png'%(mode,save_var,cs_name))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -699,7 +708,8 @@ def raincloud_continuous_list(
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
-            filename = os.path.join(save_path, '%s_%s_raincloud_plot.png'%(mode,var))
+            save_var = re.sub(r'[\/:*?"<>|]', "_", var)
+            filename = os.path.join(save_path, '%s_%s_raincloud_plot.png'%(mode,save_var))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
