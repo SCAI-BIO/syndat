@@ -70,3 +70,15 @@ class Test(unittest.TestCase):
         self.assertTrue(isinstance(auc_score, float))
         self.assertGreaterEqual(auc_score, 0.0)
         self.assertLessEqual(auc_score, 100.0)
+
+    def test_missing_in_all_cols_raises_error(self):
+        with self.assertRaises(ValueError):
+            real = pd.DataFrame({
+                'feature1': [1, 2, np.nan, np.nan],
+                'feature2': ['A', 'B', np.nan, np.nan]
+            })
+            synthetic = pd.DataFrame({
+                'feature1': [1, 2, np.nan, np.nan],
+                'feature2': ['X', 'Y', np.nan, np.nan]
+            })
+            auc_score = syndat.scores.discrimination(real, synthetic)
