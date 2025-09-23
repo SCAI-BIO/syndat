@@ -19,7 +19,7 @@ def discriminator_auc(real: pd.DataFrame, synthetic: pd.DataFrame, n_folds: int 
     Computes the ROC AUC score of a classifier trained to differentiate between real and synthetic data.
 
     :param real: The real data.
-    :param synthetic: The synthetic data
+    :param synthetic: The synthetic data.
     :param n_folds: Number of k folds for cross-validation.
     :param drop_na_threshold: Percentage of non-missing values required of any column
     :return: AUC ROC Score
@@ -29,9 +29,14 @@ def discriminator_auc(real: pd.DataFrame, synthetic: pd.DataFrame, n_folds: int 
     # check for missing values in real data
     real_clean = real_filtered.dropna(thresh=int(drop_na_threshold * len(real_filtered)), axis=1)
     n_dropped_columns = real_filtered.shape[1] - real_clean.shape[1]
-    logger.info(f'Dropped {n_dropped_columns} columns due to high missingness (threshold is {drop_na_threshold}).')
+    if n_dropped_columns == real.shape[1]:
+        raise ValueError(f'Dropping columns with the current non-missingness threshold of {drop_na_threshold} will'
+                         f'would result in an empty dataframe. Lower the drop_na_threshold param to retain more columns.')
+    if n_dropped_columns > 0:
+        logger.warning(f'Dropped {n_dropped_columns} columns due to high missingness '
+                       f'(threshold is {drop_na_threshold}).')
     real_clean = real_clean.dropna()
-    logger.info(f'Removed {len(real) - len(real_clean)} entries due to missing values.')
+    logger.warning(f'Removed {len(real) - len(real_clean)} entries due to missing values.')
     # assert that both real and synthetic have same columns
     synthetic_clean = synthetic_filtered[real_clean.columns]
     # one-hot-encode categorical columns
