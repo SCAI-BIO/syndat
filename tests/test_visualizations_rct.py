@@ -73,7 +73,9 @@ class TestPlotsRCT(unittest.TestCase):
 
         self.pbo = self.df[self.df.DRUG == 0]
         self.dt_cs = self.df[self.df.DRUG == 1]
-        self.dt_cs["DRUG"] = 0        
+        self.dt_cs["DRUG"] = 0
+        self.dt_cs = [self.dt_cs]
+        self.dt_cs_label = ["Counterfactual"]
 
     def test_exceptions_pre_processing(self):
         with self.assertRaises(AssertionError):
@@ -193,16 +195,19 @@ class TestPlotsRCT(unittest.TestCase):
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('bin_time_plot.png')]
         self.assertTrue(len(png_files) > 0, "Binary time plot files were not created.")
 
-        bin_traj_time_list(self.rp, self.pbo, dt_cs=self.dt_cs, save_path=self.save_path)
+        bin_traj_time_list(self.rp, self.pbo, dt_cs=self.dt_cs, dt_cs_label=self.dt_cs_label, save_path=self.save_path)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('bin_time_plot.png')]
         self.assertTrue(len(png_files) > 0, "Counterfactuak binary time plot files were not created.")
 
     def test_gof_categorical_list(self):
 
         with self.assertRaises(AssertionError):
+            bar_categorical_list(self.rp, self.df, type_='all')
+
+        with self.assertRaises(AssertionError):
             bar_categorical_list(self.rp, self.df, type_='Subjects', dt_cs=self.df)
 
-        bar_categorical_list(self.rp, self.pbo, dt_cs=self.dt_cs, save_path=self.save_path)
+        bar_categorical_list(self.rp, self.pbo, dt_cs=self.dt_cs, dt_cs_label=self.dt_cs_label, save_path=self.save_path)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
         self.assertTrue(len(png_files) > 0, "Counterfactual Categorical time plot files were not created.")
 
@@ -236,7 +241,7 @@ class TestPlotsRCT(unittest.TestCase):
         self.assertTrue(len(png_files) > 0, "Categorical plot files were not created.")
 
     def test_trajectory_plot_list(self):
-        trajectory_plot_list(self.rp, self.pbo, dt_cs=self.dt_cs, save_path=self.save_path)
+        trajectory_plot_list(self.rp, self.pbo, dt_cs=self.dt_cs, dt_cs_label=self.dt_cs_label, save_path=self.save_path)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('trajectory_plot.png')]
         self.assertTrue(len(png_files) > 0, "Counterfactual Trajectory plot files were not created.")
 
