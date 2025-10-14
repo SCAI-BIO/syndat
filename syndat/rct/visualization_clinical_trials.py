@@ -183,8 +183,7 @@ def gof_binary_list(
 
     logger.info("This plot applies only to binary endpoints and illustrates the calibration"
           " of the percentage of subjects who achieved the outcome value 1 (e.g., responders).")
-    df = dt[(dt["REPI"] == 1) &
-            (dt['TYPE'].isin(["Observed", mode])) &
+    df = dt[(dt['TYPE'].isin(["Observed", mode])) &
             (dt['Variable'].isin(rp0[col_name]))]
     observed_keys = df[df['TYPE'] == 'Observed'][['SUBJID', 'Variable'] + TIME_V]
     df = df.merge(observed_keys.drop_duplicates(), on=['SUBJID', 'Variable'] + TIME_V, how='inner')
@@ -219,6 +218,7 @@ def bin_traj_time_list(
     dt: pd.DataFrame,
     mode: Optional[str] = "Reconstructed",
     dt_cs: Optional[pd.DataFrame] = None,
+    dt_cs_label: Optional[List[str]] = ["Counterfactual"],
     strat_vars: Optional[List[str]] = None,
     real_label: Optional[str] = "Real Data",
     syn_label: Optional[str] = "Synthetic Data",
@@ -235,7 +235,8 @@ def bin_traj_time_list(
     :param dt: pd.DataFrame with at least columns 'REPI', 'TYPE', 'Variable', 'DV', 'TIME',
                and optionally stratification variables.
     :param mode: String, usually "Reconstructed", used for filtering TYPE.
-    :param dt_cs: Optional counterfactual DataFrame.
+    :param dt_cs: Optional list of counterfactual DataFrames.
+    :param dt_cs_label: Optional list of labels for the counterfactual data.
     :param strat_vars: Optional list of column names for stratified (faceted) plots.
     :param time_unit: A string representing the unit of time to display on the x-axis label
                   (e.g., "Months", "Days", "Hours").
@@ -254,8 +255,7 @@ def bin_traj_time_list(
           " along all time points")
 
     strat_vars = strat_vars or []
-    plot_data = (dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
-            (dt['TYPE'].isin(["Observed", mode])) &
+    plot_data = (dt[(dt['TYPE'].isin(["Observed", mode])) &
             (dt['Variable'].isin(rp0['long_bin']))]
             .groupby(strat_vars + ['Variable', 'TYPE', 'TIME'])
             .agg(Rate=('DV', lambda x: 100 * (x.sum() / len(x))))
@@ -266,12 +266,17 @@ def bin_traj_time_list(
         mode: syn_label})
 
     if dt_cs is not None:
-        plot_data_cs = (dt_cs[(dt_cs['TYPE'].isin([mode])) &
-                (dt_cs['Variable'].isin(rp0['long_bin']))]
-                .assign(TYPE="Counterfactual")
-                .groupby(strat_vars + ['Variable', 'TYPE', 'TIME'])
-                .agg(Rate=('DV', lambda x: 100 * (x.sum() / len(x))))
-                .reset_index())
+        dt_cs_all = []
+        for index, element in enumerate(dt_cs):
+            plot_data_cs = (element[(element['TYPE'].isin([mode])) &
+                    (element['Variable'].isin(rp0['long_bin']))]
+                    .assign(TYPE=dt_cs_label[index])
+                    .groupby(strat_vars + ['Variable', 'TYPE', 'TIME'])
+                    .agg(Rate=('DV', lambda x: 100 * (x.sum() / len(x))))
+                    .reset_index())
+            dt_cs_all.append(plot_data_cs)
+
+        plot_data_cs = pd.concat(dt_cs_all, ignore_index=True)
         plot_data = pd.concat([plot_data, plot_data_cs])
 
     cs_name = "counterfactual_" if dt_cs is not None else ""    
@@ -372,6 +377,7 @@ def bar_categorical_list(
     mode: Optional[str] = "Reconstructed",
     type_: Optional[str] = "Percentage",
     dt_cs: Optional[pd.DataFrame] = None,
+    dt_cs_label: Optional[List[str]] = ["Counterfactual"],
     strat_vars: Optional[List[str]] = None,
     static: Optional[bool] = False,
     real_label: Optional[str] = "Real Data",
@@ -387,7 +393,8 @@ def bar_categorical_list(
     :param dt: DataFrame with the columns 'REPI', 'TYPE', 'Variable', 'DV', 'SUBJID', 'TIME' (if static = False) and optionally others.
     :param mode: String, usually "Reconstructed", used for filtering TYPE.
     :param type_: "Percentage" or "Subjects" to define the bar heights.
-    :param dt_cs: Optional counterfactual DataFrame.
+    :param dt_cs: Optional list of counterfactual DataFrames.
+    :param dt_cs_label: Optional list of labels for the counterfactual data.
     :param strat_vars: Optional list of variables to use for facetting.
     :param static: If True, metrics for static variables will be calculated.
     :param real_label: Label for the real data (default: "Real Data").
@@ -414,7 +421,7 @@ def bar_categorical_list(
         col_name = 'long_cat'
         TIME_V = ['TIME']
 
-    df = dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
+    df = dt[(dt["REPI"] == 1 if type_ == "Subjects" else True) &
             (dt['TYPE'].isin(["Observed", mode])) &
             (dt['Variable'].isin(rp0[col_name]))]
     observed_keys = df[df['TYPE'] == 'Observed'][['SUBJID', 'Variable'] + TIME_V]
@@ -425,13 +432,18 @@ def bar_categorical_list(
         "Observed": real_label,
         mode: syn_label})
     if dt_cs is not None:
-        dt_cs = (dt_cs[(dt_cs['TYPE'].isin([mode])) &
-                (dt_cs['Variable'].isin(rp0[col_name]))]
-                .assign(TYPE="Counterfactual")
-                .merge(observed_keys.drop(columns=["SUBJID"]).drop_duplicates(), on= TIME_V + ["Variable"], how="inner")
-                .reset_index())
-        dt_cs = dt_cs.loc[:, ["Variable", "DV", "SUBJID", "TYPE"] + TIME_V + (strat_vars or [])]
-        df = pd.concat([df, dt_cs])
+        dt_cs_all = []
+        for index, element in enumerate(dt_cs):
+            plot_data_cs = (element[(element['TYPE'].isin([mode])) &
+                    (element['Variable'].isin(rp0[col_name]))]
+                    .assign(TYPE=dt_cs_label[index])
+                    .merge(observed_keys.drop(columns=["SUBJID"]).drop_duplicates(), on= TIME_V + ["Variable"], how="inner")
+                    .reset_index())
+            plot_data_cs = plot_data_cs.loc[:, ["Variable", "DV", "SUBJID", "TYPE"] + TIME_V + (strat_vars or [])]
+            dt_cs_all.append(plot_data_cs)
+
+        plot_data_cs = pd.concat(dt_cs_all, ignore_index=True)
+        df = pd.concat([df, plot_data_cs])
 
     if strat_vars is not None and "TIME" in strat_vars:
         df = df.loc[:, ~df.columns.duplicated()]
@@ -519,6 +531,7 @@ def trajectory_plot_list(
     mode: Optional[str] = "Reconstructed",
     bins: Optional[np.ndarray] = None,
     dt_cs: Optional[pd.DataFrame] = None,
+    dt_cs_label: Optional[List[str]] = ["Counterfactual"],
     strat_vars: Optional[List[str]] = None,
     real_label: Optional[str] = "Real Data",
     syn_label: Optional[str] = "Synthetic Data",
@@ -534,7 +547,8 @@ def trajectory_plot_list(
     :param dt: Main DataFrame containing data for "Observed" and `mode`.
     :param mode: String, usually "Reconstructed", used for filtering TYPE.
     :param bins: Optional array of visit cutoffs. If None, uses unique TIME values in `dt`.
-    :param dt_cs: Optional counterfactual DataFrame.
+    :param dt_cs: Optional list of counterfactual DataFrames.
+    :param dt_cs_label: Optional list of labels for the counterfactual data.
     :param strat_vars: Optional list of stratification variables for facetting.
     :param time_unit: A string representing the unit of time to display on the x-axis label
                   (e.g., "Months", "Days", "Hours").
@@ -553,8 +567,7 @@ def trajectory_plot_list(
     strat_vars = strat_vars or []
     dt['Visit'] = assign_visit_absolute(dt['TIME'], bins)
 
-    plot_data = (dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) & 
-                    (dt['TYPE'].isin(["Observed", mode])) & 
+    plot_data = (dt[(dt['TYPE'].isin(["Observed", mode])) & 
                     (dt['Variable'].isin(rp0['long_cont']))]
                     .groupby(strat_vars + ['Variable', 'TYPE', 'Visit'])
                     .agg(med=('DV', 'median'), p5=('DV', lambda x: np.percentile(x, 5)), p95=('DV', lambda x: np.percentile(x, 95)))
@@ -565,14 +578,18 @@ def trajectory_plot_list(
         mode: syn_label})
 
     if dt_cs is not None:
-        dt_cs['Visit'] = assign_visit_absolute(dt_cs['TIME'], bins)
-        plot_data_cs = (dt_cs[(dt_cs['TYPE'].isin([mode])) & 
-                    (dt_cs['Variable'].isin(rp0['long_cont']))]
-                    .assign(TYPE="Counterfactual")
-                    .groupby(strat_vars + ['Variable', 'TYPE', 'Visit'])
-                    .agg(med=('DV', 'median'), p5=('DV', lambda x: np.percentile(x, 5)), p95=('DV', lambda x: np.percentile(x, 95)))
-                    .reset_index())
-        plot_data = pd.concat([plot_data, plot_data_cs])
+        dt_cs_all = []
+        for index, element in enumerate(dt_cs):
+            element['Visit'] = assign_visit_absolute(element['TIME'], bins)
+            plot_data_cs = (element[(element['TYPE'].isin([mode])) & 
+                        (element['Variable'].isin(rp0['long_cont']))]
+                        .assign(TYPE=dt_cs_label[index])
+                        .groupby(strat_vars + ['Variable', 'TYPE', 'Visit'])
+                        .agg(med=('DV', 'median'), p5=('DV', lambda x: np.percentile(x, 5)), p95=('DV', lambda x: np.percentile(x, 95)))
+                        .reset_index())
+            dt_cs_all.append(plot_data_cs)
+        dt_cs_all = pd.concat(dt_cs_all, ignore_index=True)
+        plot_data = pd.concat([plot_data, dt_cs_all])
 
     cs_name = "counterfactual_" if dt_cs is not None else ""
     plot_list = {}
