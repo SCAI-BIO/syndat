@@ -87,7 +87,8 @@ def gof_continuous_list(
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
-    dpi: Optional[int] = 300) -> Dict[str, ggplot]:
+    dpi: Optional[int] = 300,
+    as_png: Optional[bool] = False) -> Dict[str, ggplot]:
     """
     Creates a dictionary of goodness-of-fit (GOF) plots for a list of continuous variables.
     Saves or displays each plot depending on whether a path is provided.
@@ -105,6 +106,7 @@ def gof_continuous_list(
     :param width: Width of the saved plot in inches (used only if save_path is provided).
     :param height: Height of the saved plot in inches (used only if save_path is provided).
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
+    :param as_png: set to True if you want the plot to be saved as png
     :return: A dictionary where keys are variable names and values are ggplot GOF plots.
     """
     if static:
@@ -138,7 +140,8 @@ def gof_continuous_list(
         if save_path:
             os.makedirs(save_path, exist_ok=True)
             save_var = re.sub(r'[\/:*?"<>|]', "_", var)
-            filename = os.path.join(save_path, '%s_%s_%sgof_plot.png'%(mode,save_var,log_name))
+            ext = '.png' if as_png else '.pdf'
+            filename = os.path.join(save_path, '%s_%s_%sgof_plot%s'%(mode,save_var,log_name,ext))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -155,7 +158,8 @@ def gof_binary_list(
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
-    dpi: Optional[int] = 300) -> Dict[str, ggplot]:
+    dpi: Optional[int] = 300,
+    as_png: Optional[bool] = False) -> Dict[str, ggplot]:
     """
     Creates goodness-of-fit (calibration) plots for binary variables by comparing
     the proportion of observed vs. reconstructed outcomes over time (in %).
@@ -172,6 +176,7 @@ def gof_binary_list(
     :param width: Width of the saved plot in inches (used only if save_path is provided).
     :param height: Height of the saved plot in inches (used only if save_path is provided).
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
+    :param as_png: set to True if you want the plot to be saved as png
     :return: Dictionary mapping each variable name to its ggplot object.
     """
     if static:
@@ -206,7 +211,8 @@ def gof_binary_list(
         if save_path:
             os.makedirs(save_path, exist_ok=True)
             save_var = re.sub(r'[\/:*?"<>|]', "_", var)
-            filename = os.path.join(save_path, '%s_%s_gof_bin_plot.png'%(mode,save_var))
+            ext = '.png' if as_png else '.pdf'
+            filename = os.path.join(save_path, '%s_%s_gof_bin_plot%s'%(mode,save_var,ext))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -226,7 +232,8 @@ def bin_traj_time_list(
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
-    dpi: Optional[int] = 300) -> Dict[str, ggplot]:
+    dpi: Optional[int] = 300,
+    as_png: Optional[bool] = False) -> Dict[str, ggplot]:
     """
     Creates trajectories plots of the percentage of subjects who achieved the outcome
     value 1 (e.g., responders).
@@ -247,6 +254,7 @@ def bin_traj_time_list(
     :param width: Width of the saved plot in inches (used only if save_path is provided).
     :param height: Height of the saved plot in inches (used only if save_path is provided).
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
+    :param as_png: set to True if you want the plot to be saved as png
     :return: Dictionary mapping each variable name to its ggplot object.
     """
 
@@ -293,7 +301,8 @@ def bin_traj_time_list(
         if save_path:
             os.makedirs(save_path, exist_ok=True)
             save_var = re.sub(r'[\/:*?"<>|]', "_", var)
-            filename = os.path.join(save_path, '%s_%s_%sbin_time_plot.png'%(mode,save_var,cs_name))
+            ext = '.png' if as_png else '.pdf'
+            filename = os.path.join(save_path, '%s_%s_%sbin_time_plot%s'%(mode,save_var,cs_name,ext))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -385,7 +394,8 @@ def bar_categorical_list(
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
-    dpi: Optional[int] = 300) -> Dict[str, ggplot]:
+    dpi: Optional[int] = 300,
+    as_png: Optional[bool] = False) -> Dict[str, ggplot]:
     """
     Generates and optionally saves bar plots for all categorical variables listed in rp0.
 
@@ -403,6 +413,7 @@ def bar_categorical_list(
     :param width: Width of the saved plot in inches (used only if save_path is provided).
     :param height: Height of the saved plot in inches (used only if save_path is provided).
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
+    :param as_png: set to True if you want the plot to be saved as png
     :return: Dictionary of ggplot objects keyed by variable name.
     """
 
@@ -462,7 +473,8 @@ def bar_categorical_list(
         if save_path:
             os.makedirs(save_path, exist_ok=True)
             save_var = re.sub(r'[\/:*?"<>|]', "_", var)
-            filename = os.path.join(save_path, '%s_%s_%sbar_cat_%s_plot.png'%(mode,save_var,cs_name,name_))
+            ext = '.png' if as_png else '.pdf'
+            filename = os.path.join(save_path, '%s_%s_%sbar_cat_%s_plot%s'%(mode,save_var,cs_name,name_,ext))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -539,7 +551,8 @@ def trajectory_plot_list(
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
-    dpi: Optional[int] = 300) -> Dict[str, ggplot]:
+    dpi: Optional[int] = 300,
+    as_png: Optional[bool] = False) -> Dict[str, ggplot]:
     """
     Generates and optionally saves ribbon plots for continuous variables across visits.
 
@@ -558,6 +571,7 @@ def trajectory_plot_list(
     :param width: Width of the saved plot in inches (used only if save_path is provided).
     :param height: Height of the saved plot in inches (used only if save_path is provided).
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
+    :param as_png: set to True if you want the plot to be saved as png
     :return: Dictionary of ggplot objects keyed by variable name.
     """
 
@@ -604,7 +618,8 @@ def trajectory_plot_list(
         if save_path:
             os.makedirs(save_path, exist_ok=True)
             save_var = re.sub(r'[\/:*?"<>|]', "_", var)
-            filename = os.path.join(save_path, '%s_%s_%strajectory_plot.png'%(mode,save_var,cs_name))
+            ext = '.png' if as_png else '.pdf'
+            filename = os.path.join(save_path, '%s_%s_%strajectory_plot%s'%(mode,save_var,cs_name,ext))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -628,6 +643,10 @@ def raincloud_plot(
     :param syn_label: Label for the synthetic data (default: "Synthetic Data").
     :return: ggplot object.
     """
+    plt_dt = plt_dt[
+        (plt_dt["TYPE"] != real_label) |
+        ((plt_dt["TYPE"] == real_label) & (plt_dt["REPI"] == 1))]
+
     plt_dt["TYPE"] = pd.Categorical(plt_dt["TYPE"], categories=[real_label, syn_label])
 
     p = (
@@ -664,7 +683,8 @@ def raincloud_continuous_list(
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
-    dpi: Optional[int] = 300) -> Dict[str, ggplot]:
+    dpi: Optional[int] = 300,
+    as_png: Optional[bool] = False) -> Dict[str, ggplot]:
 
     """
     Generates and optionally saves raincloud plots for continuous observed vs reconstructed variables
@@ -680,6 +700,7 @@ def raincloud_continuous_list(
     :param width: Width of the saved plot in inches (used only if save_path is provided).
     :param height: Height of the saved plot in inches (used only if save_path is provided).
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
+    :param as_png: set to True if you want the plot to be saved as png
     :return: Dictionary of ggplot objects keyed by variable name.
     """
 
@@ -712,7 +733,7 @@ def raincloud_continuous_list(
     for var in rp0[col_name]:
         plot = raincloud_plot(
             plt_dt=plot_data[plot_data["Variable"] == var]
-            .melt(id_vars=["SUBJID", "Variable"] + TIME_V + (strat_vars or []),
+            .melt(id_vars=["SUBJID", "Variable", "REPI"] + TIME_V + (strat_vars or []),
                     value_vars=[real_label, syn_label],
                     var_name="TYPE",
                     value_name="DV"),
@@ -726,7 +747,8 @@ def raincloud_continuous_list(
         if save_path:
             os.makedirs(save_path, exist_ok=True)
             save_var = re.sub(r'[\/:*?"<>|]', "_", var)
-            filename = os.path.join(save_path, '%s_%s_raincloud_plot.png'%(mode,save_var))
+            ext = '.png' if as_png else '.pdf'
+            filename = os.path.join(save_path, '%s_%s_raincloud_plot%s'%(mode,save_var,ext))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)

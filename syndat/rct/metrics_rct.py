@@ -37,13 +37,11 @@ def compute_continuous_error_metrics(
     strat_vars = strat_vars or []
 
     if static:
-        dt = (dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
-                (dt['TYPE'].isin(["Observed", mode])) &
+        dt = (dt[(dt['TYPE'].isin(["Observed", mode])) &
                 (dt['Variable'].isin(rp0['static_cont']))])
         TIME_v = []
     else:
-        dt = (dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
-                (dt['TYPE'].isin(["Observed", mode])) &
+        dt = (dt[(dt['TYPE'].isin(["Observed", mode])) &
                 (dt['Variable'].isin(rp0['long_cont']))])
         TIME_v = ["TIME"]
 
@@ -145,13 +143,11 @@ def compute_categorical_error_metrics(
 
     strat_vars = strat_vars or []
     if static:
-        dt = (dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
-                (dt['TYPE'].isin(["Observed", mode])) &
+        dt = (dt[(dt['TYPE'].isin(["Observed", mode])) &
                 (dt['Variable'].isin(rp0['static_cat'] + rp0['static_bin']))])
         TIME_v = []
     else:
-        dt = (dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
-            (dt['TYPE'].isin(["Observed", mode])) &
+        dt = (dt[(dt['TYPE'].isin(["Observed", mode])) &
             (dt['Variable'].isin(rp0['long_cat'] + rp0['long_bin']))])
         TIME_v = ["TIME"]
 
