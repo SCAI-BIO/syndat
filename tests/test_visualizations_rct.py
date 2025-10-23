@@ -165,39 +165,59 @@ class TestPlotsRCT(unittest.TestCase):
 
     def test_gof_continuous_list(self):
         gof_continuous_list(self.rp, self.df, strat_vars=["DRUG"], save_path=self.save_path)
-        png_files = [f for f in os.listdir(self.save_path) if f.endswith('gof_plot.png')]
-        self.assertTrue(len(png_files) > 0, "GOF plot files were not created.")
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('gof_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "GOF plot files were not created.")
 
         gof_continuous_list(self.rp, self.sdf, strat_vars=["DRUG"], static=True, save_path=self.save_path)
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('gof_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "GOF plot files were not created.")
+
+        gof_continuous_list(self.rp, self.sdf, strat_vars=["DRUG"], static=True,
+                            save_path=self.save_path, as_png=True)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('gof_plot.png')]
         self.assertTrue(len(png_files) > 0, "GOF plot files were not created.")
 
     def test_log_gof_continuous_list(self):
         gof_continuous_list(self.rp, self.df, strat_vars=["DRUG"], log_trans=True, save_path=self.save_path)
-        png_files = [f for f in os.listdir(self.save_path) if f.endswith('Loggof_plot.png')]
-        self.assertTrue(len(png_files) > 0, "GOF plot files were not created.")
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('Loggof_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "GOF plot files were not created.")
 
         gof_continuous_list(self.rp, self.sdf, strat_vars=["DRUG"], static=True, log_trans=True, save_path=self.save_path)
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('Loggof_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "GOF plot files were not created.")
+
+        gof_continuous_list(self.rp, self.sdf, strat_vars=["DRUG"], static=True,
+                            log_trans=True, save_path=self.save_path, as_png=True)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('Loggof_plot.png')]
         self.assertTrue(len(png_files) > 0, "GOF plot files were not created.")
 
     def test_gof_binary_list(self):
         gof_binary_list(self.rp, self.df, strat_vars=["DRUG"], save_path=self.save_path)
-        png_files = [f for f in os.listdir(self.save_path) if f.endswith('gof_bin_plot.png')]
-        self.assertTrue(len(png_files) > 0, "Binary GOF plot files were not created.")
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('gof_bin_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "Binary GOF plot files were not created.")
 
         gof_binary_list(self.rp, self.sdf, strat_vars=["DRUG"], static=True, save_path=self.save_path)
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('gof_bin_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "Binary GOF plot files were not created.")
+
+        gof_binary_list(self.rp, self.sdf, strat_vars=["DRUG"], static=True,
+                        save_path=self.save_path, as_png=True)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('gof_bin_plot.png')]
         self.assertTrue(len(png_files) > 0, "Binary GOF plot files were not created.")
 
-    def test_bar_time_binary_list(self):
-        bin_traj_time_list(self.rp, self.df, strat_vars=["DRUG"], save_path=self.save_path)
-        png_files = [f for f in os.listdir(self.save_path) if f.endswith('bin_time_plot.png')]
-        self.assertTrue(len(png_files) > 0, "Binary time plot files were not created.")
+    def test_percentage_time_list(self):
+        percentage_cat_traj_time_list(self.rp, self.df, strat_vars=["DRUG"], save_path=self.save_path)
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('perc_time_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "Percentage time plot files were not created.")
 
-        bin_traj_time_list(self.rp, self.pbo, dt_cs=self.dt_cs, dt_cs_label=self.dt_cs_label, save_path=self.save_path)
-        png_files = [f for f in os.listdir(self.save_path) if f.endswith('bin_time_plot.png')]
-        self.assertTrue(len(png_files) > 0, "Counterfactuak binary time plot files were not created.")
+        percentage_cat_traj_time_list(self.rp, self.pbo, dt_cs=self.dt_cs, dt_cs_label=self.dt_cs_label, save_path=self.save_path)
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('perc_time_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "Counterfactual percentage time plot files were not created.")
+
+        percentage_cat_traj_time_list(self.rp, self.pbo, dt_cs=self.dt_cs, dt_cs_label=self.dt_cs_label,
+                                      save_path=self.save_path, as_png=True)
+        png_files = [f for f in os.listdir(self.save_path) if f.endswith('perc_time_plot.png')]
+        self.assertTrue(len(png_files) > 0, "Counterfactual percentage time plot files were not created.")
 
     def test_gof_categorical_list(self):
 
@@ -208,58 +228,76 @@ class TestPlotsRCT(unittest.TestCase):
             bar_categorical_list(self.rp, self.df, type_='Subjects', dt_cs=self.df)
 
         bar_categorical_list(self.rp, self.pbo, dt_cs=self.dt_cs, dt_cs_label=self.dt_cs_label, save_path=self.save_path)
-        png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
-        self.assertTrue(len(png_files) > 0, "Counterfactual Categorical time plot files were not created.")
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "Counterfactual Categorical time plot files were not created.")
 
         bar_categorical_list(self.rp, self.df, strat_vars=["DRUG"], save_path=self.save_path)
-        png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
-        self.assertTrue(len(png_files) > 0, "Categorical plot files were not created.")
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "Categorical plot files were not created.")
 
         bar_categorical_list(self.rp, self.df, strat_vars=["DRUG","TIME"], save_path=self.save_path)
-        png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
-        self.assertTrue(len(png_files) > 0, "Categorical plot files were not created.")
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "Categorical plot files were not created.")
 
         bar_categorical_list(self.rp, self.df, save_path=self.save_path)
-        png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
-        self.assertTrue(len(png_files) > 0, "Categorical plot files were not created.")
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "Categorical plot files were not created.")
 
         bar_categorical_list(self.rp, self.sdf, strat_vars=["DRUG"], static=True, save_path=self.save_path)
-        png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
-        self.assertTrue(len(png_files) > 0, "Categorical plot files were not created.")
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "Categorical plot files were not created.")
 
         bar_categorical_list(self.rp, self.sdf, static=True, save_path=self.save_path)
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "Categorical plot files were not created.")
+
+        bar_categorical_list(self.rp, self.sdf, static=True, save_path=self.save_path, as_png=True)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_perc_plot.png')]
         self.assertTrue(len(png_files) > 0, "Categorical plot files were not created.")
 
     def test_gof_categorical_list2(self):
         bar_categorical_list(self.rp, self.df, type_="Subjects", strat_vars=["DRUG","TIME"], save_path=self.save_path)
-        png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_subj_plot.png')]
-        self.assertTrue(len(png_files) > 0, "Categorical plot files were not created.")
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_subj_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "Categorical plot files were not created.")
 
         bar_categorical_list(self.rp, self.sdf, type_="Subjects", strat_vars=["DRUG"], static=True, save_path=self.save_path)
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_subj_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "Categorical plot files were not created.")
+
+        bar_categorical_list(self.rp, self.sdf, type_="Subjects", strat_vars=["DRUG"], static=True,
+                             save_path=self.save_path, as_png=True)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('bar_cat_subj_plot.png')]
         self.assertTrue(len(png_files) > 0, "Categorical plot files were not created.")
 
     def test_trajectory_plot_list(self):
         trajectory_plot_list(self.rp, self.pbo, dt_cs=self.dt_cs, dt_cs_label=self.dt_cs_label, save_path=self.save_path)
-        png_files = [f for f in os.listdir(self.save_path) if f.endswith('trajectory_plot.png')]
-        self.assertTrue(len(png_files) > 0, "Counterfactual Trajectory plot files were not created.")
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('trajectory_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "Counterfactual Trajectory plot files were not created.")
 
         trajectory_plot_list(self.rp, self.df, strat_vars=["DRUG"], save_path=self.save_path)
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('trajectory_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "Trajectory plot files were not created.")
+
+        trajectory_plot_list(self.rp, self.df, strat_vars=["DRUG"], save_path=self.save_path, as_png=True)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('trajectory_plot.png')]
         self.assertTrue(len(png_files) > 0, "Trajectory plot files were not created.")
 
     def test_raincloud_continuous_list(self):
         raincloud_continuous_list(self.rp, self.df, strat_vars=["DRUG"], save_path=self.save_path)
-        png_files = [f for f in os.listdir(self.save_path) if f.endswith('raincloud_plot.png')]
-        self.assertTrue(len(png_files) > 0, "Raincloud plot files were not created.")
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('raincloud_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "Raincloud plot files were not created.")
 
         raincloud_continuous_list(self.rp, self.sdf, strat_vars=["DRUG"], static=True, save_path=self.save_path)
+        pdf_files = [f for f in os.listdir(self.save_path) if f.endswith('raincloud_plot.pdf')]
+        self.assertTrue(len(pdf_files) > 0, "Raincloud plot files were not created.")
+
+        raincloud_continuous_list(self.rp, self.sdf, strat_vars=["DRUG"], static=True,
+                                  save_path=self.save_path, as_png=True)
         png_files = [f for f in os.listdir(self.save_path) if f.endswith('raincloud_plot.png')]
         self.assertTrue(len(png_files) > 0, "Raincloud plot files were not created.")
 
     def tearDown(self):
         if os.path.exists(self.save_path):
             for f in os.listdir(self.save_path):
-                if f.endswith('.png'):
+                if f.endswith('.pdf') or f.endswith('.png'):
                     os.remove(os.path.join(self.save_path, f))

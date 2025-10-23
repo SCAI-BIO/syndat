@@ -12,7 +12,8 @@ from plotnine import (ggplot, aes, geom_point, geom_smooth,
                       labs, scale_x_log10, scale_y_log10, facet_wrap,
                       theme, element_text, geom_text, element_blank,
                       position_dodge, position_nudge, position_jitter,
-                      theme_minimal, element_rect, scale_x_discrete)
+                      theme_minimal, element_rect, scale_x_discrete,
+                      guides, guide_legend)
 
 ggstyle = theme(
     axis_title=element_text(size=18),
@@ -219,7 +220,7 @@ def gof_binary_list(
     return gof_list
 
 
-def bin_traj_time_list(
+def percentage_cat_traj_time_list(
     rp0: dict,
     dt: pd.DataFrame,
     mode: Optional[str] = "Reconstructed",
@@ -258,17 +259,17 @@ def bin_traj_time_list(
     :return: Dictionary mapping each variable name to its ggplot object.
     """
 
-    logger.info("This plot applies only to binary endpoints and illustrates the calibration" \
-          " of the percentage of subjects who achieved the outcome value 1 (e.g., responders)" \
-          " along all time points")
-
     strat_vars = strat_vars or []
     plot_data = (dt[(dt['TYPE'].isin(["Observed", mode])) &
-            (dt['Variable'].isin(rp0['long_bin']))]
-            .groupby(strat_vars + ['Variable', 'TYPE', 'TIME'])
-            .agg(Rate=('DV', lambda x: 100 * (x.sum() / len(x))))
+            (dt['Variable'].isin(rp0['long_cat']))]
+            .groupby(strat_vars + ['Variable', 'TYPE', 'TIME', 'DV'])
+            .agg(Count=('DV', 'size'))
             .reset_index())
 
+    plot_data["Total"] = (
+        plot_data.groupby(strat_vars + ["Variable", "TYPE", "TIME"])["Count"]
+                .transform("sum"))
+    plot_data["Rate"] = 100 * plot_data["Count"] / plot_data["Total"]
     plot_data["TYPE"] = plot_data["TYPE"].replace({
         "Observed": real_label,
         mode: syn_label})
@@ -277,15 +278,21 @@ def bin_traj_time_list(
         dt_cs_all = []
         for index, element in enumerate(dt_cs):
             plot_data_cs = (element[(element['TYPE'].isin([mode])) &
-                    (element['Variable'].isin(rp0['long_bin']))]
+                    (element['Variable'].isin(rp0['long_cat']))]
                     .assign(TYPE=dt_cs_label[index])
-                    .groupby(strat_vars + ['Variable', 'TYPE', 'TIME'])
-                    .agg(Rate=('DV', lambda x: 100 * (x.sum() / len(x))))
+                    .groupby(strat_vars + ['Variable', 'TYPE', 'TIME', 'DV'])
+                    .agg(Count=('DV', 'size'))
                     .reset_index())
+            plot_data_cs["Total"] = (
+                plot_data_cs.groupby(strat_vars + ["Variable", "TYPE", "TIME"])["Count"]
+                        .transform("sum"))
+            plot_data_cs["Rate"] = 100 * plot_data_cs["Count"] / plot_data_cs["Total"]
+
             dt_cs_all.append(plot_data_cs)
 
         plot_data_cs = pd.concat(dt_cs_all, ignore_index=True)
         plot_data = pd.concat([plot_data, plot_data_cs])
+    plot_data["Rate"] = plot_data["Rate"].round(1)
 
     cs_name = "counterfactual_" if dt_cs is not None else ""    
     plot_list = {}
@@ -302,7 +309,7 @@ def bin_traj_time_list(
             os.makedirs(save_path, exist_ok=True)
             save_var = re.sub(r'[\/:*?"<>|]', "_", var)
             ext = '.png' if as_png else '.pdf'
-            filename = os.path.join(save_path, '%s_%s_%sbin_time_plot%s'%(mode,save_var,cs_name,ext))
+            filename = os.path.join(save_path, '%s_%s_%sperc_time_plot%s'%(mode,save_var,cs_name,ext))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -519,11 +526,24 @@ def trajectory_plot(
     """
 
     if achievement_plot:
-        p = (ggplot(plt_dt, aes(x='TIME', y='Rate', color='TYPE', group='TYPE')) +
-            geom_line(size=1) +
+        plt_dt = plt_dt.sort_values(["DV"])
+        p = (ggplot(plt_dt, aes(x='TIME', y='Rate', color='factor(DV)')) +
+            geom_point(plt_dt[plt_dt['TYPE'] == 'Observed'],aes(shape='TYPE'),
+                       size=2.8,alpha=0.9) +
+            geom_line(plt_dt[plt_dt['TYPE'] != 'Observed'],aes(linetype='TYPE'),
+                      size=1.2,alpha=0.9) +
             labs(x=f"Time ({time_unit})", y="Percentage of subjects who achieved outcome",
-                 title=var_name, fill=None, color=None) +
-            coord_cartesian() + ggstyle)
+                 title=var_name, color="Classes", shape=None, linetype=None) +
+            guides(color=guide_legend(order=2, title="Classes"),
+                   shape=guide_legend(order=1, title=''),
+                   linetype=guide_legend(order=1, title='')) +
+            coord_cartesian() + 
+            theme(
+                axis_title=element_text(size=18),
+                axis_text=element_text(size=18),
+                plot_title=element_text(size=18, ha='center'),
+                strip_text=element_text(size=18),
+                legend_position="right"))
     else:
         p = (ggplot(plt_dt, aes(x='Visit', y='med', color='TYPE', group='TYPE')) +
             geom_ribbon(aes(ymin='p5', ymax='p95', fill='TYPE'), alpha=0.2) +

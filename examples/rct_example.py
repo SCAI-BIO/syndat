@@ -176,5 +176,5 @@ dt_cs = ldt[ldt.DRUG=="Treated"]
 dt_cs["DRUG"] = "Placebo"
 
 bar_categorical_list(rp, pbo, dt_cs=dt_cs, type_='Percentage', strat_vars=["DRUG"], save_path=results_path)
-bin_traj_time_list(rp, pbo, dt_cs=dt_cs, save_path=results_path)
+percentage_cat_traj_time_list(rp, pbo, dt_cs=dt_cs, save_path=results_path)
 trajectory_plot_list(rp, pbo, dt_cs=dt_cs, strat_vars=["DRUG"], save_path=results_path)
