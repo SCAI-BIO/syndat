@@ -212,3 +212,35 @@ class TestCorrelation(unittest.TestCase):
         self.assertEqual(result, 100,
                          "Correlation score should be calculated based on matching columns only and should be "
                          "100 for identical datasets with an extra column in synthetic data")
+
+    def test_correlation_drop_cat_defined(self):
+        real_data = pd.DataFrame({
+            'A': [1, 2, 3, 4, 5],
+            'B': [5, 4, 3, 2, 1],
+            'C': ['A', 'B', 'C', 'D', 'E']
+        })
+        synthetic_data = pd.DataFrame({
+            'A': [1, 2, 3, 4, 5],
+            'B': [5, 4, 3, 2, 1],
+            'C': ['A', 'A', 'B', 'B', 'B']
+        })
+        result = correlation(real_data, synthetic_data, cat_cols=['C'], ignore_cat=True)
+        self.assertEqual(result, 100, "Correlation score should be 100 for identical datasets "
+                                      "(after dropping categorical column)")
+
+
+    def test_correlation_drop_cat_heuristic(self):
+        real_data = pd.DataFrame({
+            'A': [1, 2, 3, 4, 5],
+            'B': [5, 4, 3, 2, 1],
+            'C': ['A', 'B', 'C', 'D', 'E']
+        })
+        synthetic_data = pd.DataFrame({
+            'A': [1, 2, 3, 4, 5],
+            'B': [5, 4, 3, 2, 1],
+            'C': ['A', 'A', 'B', 'B', 'B']
+        })
+        result = correlation(real_data, synthetic_data, ignore_cat=True)
+        self.assertEqual(result, 100, "Correlation score should be 100 for identical datasets "
+                                      "(after dropping categorical column)")
+

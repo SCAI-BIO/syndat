@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 import numpy as np
 
-from typing import Dict, Literal
+from typing import Dict, Literal, List, Optional
 
 import scipy
 from sklearn import ensemble
@@ -125,7 +125,8 @@ def jensen_shannon_distance(real: pd.DataFrame, synthetic: pd.DataFrame,
 
 
 def normalized_correlation_difference(real: pd.DataFrame, synthetic: pd.DataFrame,
-                                      method: Literal['pearson', 'kendall', 'spearman'] = 'spearman') -> float:
+                                      method: Literal['pearson', 'kendall', 'spearman'] = 'spearman',
+                                      cat_cols: Optional[List[str]] = None, ignore_cat: bool = False) -> float:
     """
     Computes the correlation similarity of real and synthetic data by comparing the correlation matrices of both
     datasets. The score is calculated as the norm quotient of the difference between the correlation matrices of real
@@ -136,6 +137,8 @@ def normalized_correlation_difference(real: pd.DataFrame, synthetic: pd.DataFram
     :param real: The real data.
     :param synthetic: The synthetic data.
     :param method: The method to use for correlation computation. Either of "pearson", "kendall" or "spearman".
+    :param cat_cols: List of categorical column names.
+    :param ignore_cat: Whether to ignore categorical columns.
     :return: correlation quotient
     """
     # check if both datasets have the same columns
@@ -149,6 +152,9 @@ def normalized_correlation_difference(real: pd.DataFrame, synthetic: pd.DataFram
     else:
         real_common_cols = real
         synthetic_common_cols = synthetic
+    # Handle categorical columns
+    real_common_cols = __handle_categorical_columns(real_common_cols, cat_cols, ignore_cat)
+    synthetic_common_cols = __handle_categorical_columns(synthetic_common_cols, cat_cols, ignore_cat)
     # filter out rows with categories that are not present in both datasets
     # why do we do this? while it is expected that categorical columns of both data sets contain the same categories,
     # it is entirely possible that this is not the case. If this happens, we omit this extra category from computation
@@ -197,6 +203,31 @@ def normalized_correlation_difference(real: pd.DataFrame, synthetic: pd.DataFram
     norm_real = np.linalg.norm(corr_real)
     norm_quotient = norm_diff / norm_real
     return norm_quotient
+
+
+def __handle_categorical_columns(
+    df: pd.DataFrame,
+    cat_cols: Optional[List[str]],
+    ignore_cat: bool
+) -> pd.DataFrame:
+    """
+    Drop or keep categorical columns based on user input and ignore_cat flag.
+    """
+    if ignore_cat:
+        if cat_cols is None:
+            # Heuristic: select object or category columns
+            cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
+            if cat_cols:
+                logger.info(f"Detected categorical columns to drop: {cat_cols}")
+        else:
+            logger.info(f"Dropping user-provided categorical columns: {cat_cols}")
+        df = df.drop(columns=cat_cols, errors="ignore")
+    else:
+        if cat_cols is not None:
+            logger.warning(
+                "cat_cols provided but ignore_cat=False, categorical columns will be included."
+            )
+    return df
 
 
 def __filter_nan_exclusive_combinations(real: pd.DataFrame, synthetic: pd.DataFrame

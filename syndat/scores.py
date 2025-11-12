@@ -1,5 +1,5 @@
 import logging
-from typing import Literal
+from typing import Literal, Optional, List
 
 import pandas
 import pandas as pd
@@ -44,7 +44,8 @@ def distribution(real: pd.DataFrame, synthetic: pd.DataFrame, n_unique_threshold
 
 
 def correlation(real: pd.DataFrame, synthetic: pd.DataFrame,
-                method: Literal['pearson', 'kendall', 'spearman'] = 'spearman') -> float:
+                method: Literal['pearson', 'kendall', 'spearman'] = 'spearman',
+                cat_cols: Optional[List[str]] = None, ignore_cat: bool = False) -> float:
     """
     Computes the Correlation Similarity Score (normalized between 0-100) of real and synthetic data. The score is
     calculated by comparing the correlation matrices of real and synthetic data.
@@ -52,9 +53,11 @@ def correlation(real: pd.DataFrame, synthetic: pd.DataFrame,
     :param real: The real data.
     :param synthetic: The synthetic data.
     :param method: The correlation method to use. Options are 'pearson', 'kendall', or 'spearman'.
+    :param cat_cols: List of categorical column names.
+    :param ignore_cat: Whether to ignore categorical columns.
     :return: Correlation score / Norm Quotient
     """
-    norm_quotient = syndat.metrics.normalized_correlation_difference(real, synthetic, method)
+    norm_quotient = syndat.metrics.normalized_correlation_difference(real, synthetic, method, cat_cols, ignore_cat)
     # the norm can exceed 1 in case the correlations are mostly negative for real data, but mostly positive for
     # synthetic data. As this is the worst case scenario, we consider this as having a score of zero
     if norm_quotient > 1:
