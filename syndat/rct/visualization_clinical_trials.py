@@ -360,9 +360,10 @@ def bar_categorical(
         full_index = pd.MultiIndex.from_product(
             [all_dv, all_types], names=['DV', 'TYPE']
         )
- 
+        dv_vals = sorted(df['DV'].unique())
         df = df.set_index(['DV', 'TYPE']).reindex(full_index, fill_value=0).reset_index()
-    df['DV'] = df['DV'].astype(str)
+
+    df['DV'] = pd.Categorical(df['DV'], categories=dv_vals, ordered=True)
     if type_ == "Percentage":
         p = (ggplot(df, aes(x='DV', y='PERC', fill='TYPE')) +
              geom_bar(stat='identity', position=position_dodge(width=1)) +
@@ -652,7 +653,8 @@ def raincloud_plot(
     var_name: str,
     strat_vars: Optional[List[str]] = None,
     real_label: Optional[str] = "Real Data",
-    syn_label: Optional[str] = "Synthetic Data") -> ggplot:
+    syn_label: Optional[str] = "Synthetic Data",
+    dt_cs_label: Optional[List[str]] = []) -> ggplot:
     """
     Generates a raincloud plot (violin + boxplot + jitter) comparing Observed vs Reconstructed data.
 
@@ -661,13 +663,14 @@ def raincloud_plot(
     :param strat_vars: Optional list of variables to use for facetting.
     :param real_label: Label for the real data (default: "Real Data").
     :param syn_label: Label for the synthetic data (default: "Synthetic Data").
+    :param dt_cs_label: Label for the counterfactual data (default: []).
     :return: ggplot object.
     """
     plt_dt = plt_dt[
         (plt_dt["TYPE"] != real_label) |
         ((plt_dt["TYPE"] == real_label) & (plt_dt["REPI"] == 1))]
 
-    plt_dt["TYPE"] = pd.Categorical(plt_dt["TYPE"], categories=[real_label, syn_label])
+    plt_dt["TYPE"] = pd.Categorical(plt_dt["TYPE"], categories=[real_label, syn_label] + dt_cs_label)
 
     p = (
         ggplot(plt_dt, aes(x='TYPE', y='DV', fill='TYPE', color='TYPE')) +
@@ -698,6 +701,8 @@ def raincloud_continuous_list(
     mode: Optional[str] = "Reconstructed",
     static: Optional[bool] = False,
     strat_vars: Optional[List[str]] = None,
+    dt_cs: Optional[pd.DataFrame] = None,
+    dt_cs_label: Optional[List[str]] = ["Counterfactual"],
     real_label: Optional[str] = "Real Data",
     syn_label: Optional[str] = "Synthetic Data",
     save_path: Optional[str] = None,
@@ -714,6 +719,8 @@ def raincloud_continuous_list(
     :param mode: String, usually "Reconstructed", used for filtering TYPE.
     :param static: If True, plots for static variables will be obtained.
     :param strat_vars: Optional list of variables to use for facetting.
+    :param dt_cs: Optional list of counterfactual DataFrames.
+    :param dt_cs_label: Optional list of labels for the counterfactual data.
     :param real_label: Label for the real data (default: "Real Data").
     :param syn_label: Label for the synthetic data (default: "Synthetic Data").
     :param save_path: Optional path to folder where plots should be saved. If not provided, plots are shown.
@@ -732,7 +739,6 @@ def raincloud_continuous_list(
         TIME_V = ['TIME']
     strat_vars = strat_vars or []
 
-    plot_list = {}
     plot_data = (
         dt[(dt["TYPE"].isin(["Observed", mode])) & (dt["Variable"].isin(rp0[col_name]))]
         .filter(items=["Variable", "DV", "SUBJID", "REPI", "TYPE"] + TIME_V + strat_vars)
@@ -750,17 +756,41 @@ def raincloud_continuous_list(
             "Observed": real_label,
             mode: syn_label})
 
+    if dt_cs is not None:
+        dt_cs_all = []
+        for index, element in enumerate(dt_cs):
+            plot_data_cs = (element[(element['TYPE'].isin(["Observed", mode])) &
+                    (element['Variable'].isin(rp0[col_name]))]
+                    .pivot(
+                        index=["SUBJID", "REPI", "Variable"] + TIME_V + strat_vars,
+                        columns="TYPE",
+                        values="DV")
+                    .reset_index()
+                    .dropna(subset=["Observed"]))        
+            plot_data_cs = plot_data_cs.rename(
+                columns={mode: dt_cs_label[index]}).drop(columns=["Observed"])
+            dt_cs_all.append(plot_data_cs)
+        plot_data_cs = pd.concat(dt_cs_all, ignore_index=True)
+        plot_data = plot_data.merge(plot_data_cs,
+            on=["SUBJID", "REPI", "Variable"],
+            how="inner")
+    else:
+        dt_cs_label = []
+
+    cs_name = "counterfactual_" if dt_cs is not None else ""    
+    plot_list = {}
     for var in rp0[col_name]:
         plot = raincloud_plot(
             plt_dt=plot_data[plot_data["Variable"] == var]
             .melt(id_vars=["SUBJID", "Variable", "REPI"] + TIME_V + (strat_vars or []),
-                    value_vars=[real_label, syn_label],
+                    value_vars=[real_label, syn_label] + dt_cs_label,
                     var_name="TYPE",
                     value_name="DV"),
             var_name=var,
             strat_vars=strat_vars,
             real_label=real_label,
-            syn_label=syn_label
+            syn_label=syn_label,
+            dt_cs_label=dt_cs_label
         )
         plot_list[var] = plot
 
@@ -768,7 +798,7 @@ def raincloud_continuous_list(
             os.makedirs(save_path, exist_ok=True)
             save_var = re.sub(r'[\/:*?"<>|]', "_", var)
             ext = '.png' if as_png else '.pdf'
-            filename = os.path.join(save_path, '%s_%s_raincloud_plot%s'%(mode,save_var,ext))
+            filename = os.path.join(save_path, '%s_%s_%sraincloud_plot%s'%(mode,save_var,cs_name,ext))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
