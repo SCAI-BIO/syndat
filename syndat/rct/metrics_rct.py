@@ -37,13 +37,11 @@ def compute_continuous_error_metrics(
     strat_vars = strat_vars or []
 
     if static:
-        dt = (dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
-                (dt['TYPE'].isin(["Observed", mode])) &
+        dt = (dt[(dt['TYPE'].isin(["Observed", mode])) &
                 (dt['Variable'].isin(rp0['static_cont']))])
         TIME_v = []
     else:
-        dt = (dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
-                (dt['TYPE'].isin(["Observed", mode])) &
+        dt = (dt[(dt['TYPE'].isin(["Observed", mode])) &
                 (dt['Variable'].isin(rp0['long_cont']))])
         TIME_v = ["TIME"]
 
@@ -145,13 +143,11 @@ def compute_categorical_error_metrics(
 
     strat_vars = strat_vars or []
     if static:
-        dt = (dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
-                (dt['TYPE'].isin(["Observed", mode])) &
+        dt = (dt[(dt['TYPE'].isin(["Observed", mode])) &
                 (dt['Variable'].isin(rp0['static_cat'] + rp0['static_bin']))])
         TIME_v = []
     else:
-        dt = (dt[(dt["REPI"] == 1 if mode == "Reconstructed" else True) &
-            (dt['TYPE'].isin(["Observed", mode])) &
+        dt = (dt[(dt['TYPE'].isin(["Observed", mode])) &
             (dt['Variable'].isin(rp0['long_cat'] + rp0['long_bin']))])
         TIME_v = ["TIME"]
 
@@ -174,28 +170,26 @@ def compute_categorical_error_metrics(
             logger.warning(f"Max categories not found for variable '{variable_name}', skipping group")
             continue
 
+        y_true = group_df["Observed"]
+        y_pred = group_df[mode]
+
+        classes = list(range(max_cat + 1))
+        record = dict(zip(group_cols, group_keys))
+        record["Accuracy"] = round(accuracy_score(y_true, y_pred), 3)
+
         try:
-            y_true = group_df["Observed"]
-            y_pred = group_df[mode]
-
-            classes = list(range(max_cat + 1))
-
             # Sanity check for label variability
-            if len(set(y_true)) <= 1 or len(set(y_pred)) <= 1:
+            if len(set(y_true)) <= 1:
                 raise ValueError("Only one class present")
-
-            record = dict(zip(group_cols, group_keys))
+            
             record["F1"] = round(f1_score(y_true, y_pred, average=average, labels=classes, zero_division=0), 3)
-            record["Accuracy"] = round(accuracy_score(y_true, y_pred), 3)
             record["Precision"] = round(precision_score(y_true, y_pred, average=average, labels=classes, zero_division=0), 3)
             record["Recall"] = round(recall_score(y_true, y_pred, average=average, labels=classes, zero_division=0), 3)
         except Exception as e:
-            record = dict(zip(group_cols, group_keys))
             record["F1"] = np.nan
-            record["Accuracy"] = np.nan
             record["Precision"] = np.nan
             record["Recall"] = np.nan
-            logger.info(f"For group {group_keys}, metrics are set to NaN: {str(e)}")
+            logger.info(f"For group {group_keys}, some metrics are set to NaN: {str(e)}")
 
         records.append(record)
 

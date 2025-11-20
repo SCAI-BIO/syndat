@@ -12,7 +12,8 @@ from plotnine import (ggplot, aes, geom_point, geom_smooth,
                       labs, scale_x_log10, scale_y_log10, facet_wrap,
                       theme, element_text, geom_text, element_blank,
                       position_dodge, position_nudge, position_jitter,
-                      theme_minimal, element_rect, scale_x_discrete)
+                      theme_minimal, element_rect, scale_x_discrete,
+                      guides, guide_legend)
 
 ggstyle = theme(
     axis_title=element_text(size=18),
@@ -87,7 +88,8 @@ def gof_continuous_list(
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
-    dpi: Optional[int] = 300) -> Dict[str, ggplot]:
+    dpi: Optional[int] = 300,
+    as_png: Optional[bool] = False) -> Dict[str, ggplot]:
     """
     Creates a dictionary of goodness-of-fit (GOF) plots for a list of continuous variables.
     Saves or displays each plot depending on whether a path is provided.
@@ -105,6 +107,7 @@ def gof_continuous_list(
     :param width: Width of the saved plot in inches (used only if save_path is provided).
     :param height: Height of the saved plot in inches (used only if save_path is provided).
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
+    :param as_png: set to True if you want the plot to be saved as png
     :return: A dictionary where keys are variable names and values are ggplot GOF plots.
     """
     if static:
@@ -138,7 +141,8 @@ def gof_continuous_list(
         if save_path:
             os.makedirs(save_path, exist_ok=True)
             save_var = re.sub(r'[\/:*?"<>|]', "_", var)
-            filename = os.path.join(save_path, '%s_%s_%sgof_plot.png'%(mode,save_var,log_name))
+            ext = '.png' if as_png else '.pdf'
+            filename = os.path.join(save_path, '%s_%s_%sgof_plot%s'%(mode,save_var,log_name,ext))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -155,7 +159,8 @@ def gof_binary_list(
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
-    dpi: Optional[int] = 300) -> Dict[str, ggplot]:
+    dpi: Optional[int] = 300,
+    as_png: Optional[bool] = False) -> Dict[str, ggplot]:
     """
     Creates goodness-of-fit (calibration) plots for binary variables by comparing
     the proportion of observed vs. reconstructed outcomes over time (in %).
@@ -172,6 +177,7 @@ def gof_binary_list(
     :param width: Width of the saved plot in inches (used only if save_path is provided).
     :param height: Height of the saved plot in inches (used only if save_path is provided).
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
+    :param as_png: set to True if you want the plot to be saved as png
     :return: Dictionary mapping each variable name to its ggplot object.
     """
     if static:
@@ -206,14 +212,15 @@ def gof_binary_list(
         if save_path:
             os.makedirs(save_path, exist_ok=True)
             save_var = re.sub(r'[\/:*?"<>|]', "_", var)
-            filename = os.path.join(save_path, '%s_%s_gof_bin_plot.png'%(mode,save_var))
+            ext = '.png' if as_png else '.pdf'
+            filename = os.path.join(save_path, '%s_%s_gof_bin_plot%s'%(mode,save_var,ext))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
     return gof_list
 
 
-def bin_traj_time_list(
+def percentage_cat_traj_time_list(
     rp0: dict,
     dt: pd.DataFrame,
     mode: Optional[str] = "Reconstructed",
@@ -226,7 +233,8 @@ def bin_traj_time_list(
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
-    dpi: Optional[int] = 300) -> Dict[str, ggplot]:
+    dpi: Optional[int] = 300,
+    as_png: Optional[bool] = False) -> Dict[str, ggplot]:
     """
     Creates trajectories plots of the percentage of subjects who achieved the outcome
     value 1 (e.g., responders).
@@ -247,20 +255,21 @@ def bin_traj_time_list(
     :param width: Width of the saved plot in inches (used only if save_path is provided).
     :param height: Height of the saved plot in inches (used only if save_path is provided).
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
+    :param as_png: set to True if you want the plot to be saved as png
     :return: Dictionary mapping each variable name to its ggplot object.
     """
 
-    logger.info("This plot applies only to binary endpoints and illustrates the calibration" \
-          " of the percentage of subjects who achieved the outcome value 1 (e.g., responders)" \
-          " along all time points")
-
     strat_vars = strat_vars or []
     plot_data = (dt[(dt['TYPE'].isin(["Observed", mode])) &
-            (dt['Variable'].isin(rp0['long_bin']))]
-            .groupby(strat_vars + ['Variable', 'TYPE', 'TIME'])
-            .agg(Rate=('DV', lambda x: 100 * (x.sum() / len(x))))
+            (dt['Variable'].isin(rp0['long_cat']))]
+            .groupby(strat_vars + ['Variable', 'TYPE', 'TIME', 'DV'])
+            .agg(Count=('DV', 'size'))
             .reset_index())
 
+    plot_data["Total"] = (
+        plot_data.groupby(strat_vars + ["Variable", "TYPE", "TIME"])["Count"]
+                .transform("sum"))
+    plot_data["Rate"] = 100 * plot_data["Count"] / plot_data["Total"]
     plot_data["TYPE"] = plot_data["TYPE"].replace({
         "Observed": real_label,
         mode: syn_label})
@@ -269,15 +278,21 @@ def bin_traj_time_list(
         dt_cs_all = []
         for index, element in enumerate(dt_cs):
             plot_data_cs = (element[(element['TYPE'].isin([mode])) &
-                    (element['Variable'].isin(rp0['long_bin']))]
+                    (element['Variable'].isin(rp0['long_cat']))]
                     .assign(TYPE=dt_cs_label[index])
-                    .groupby(strat_vars + ['Variable', 'TYPE', 'TIME'])
-                    .agg(Rate=('DV', lambda x: 100 * (x.sum() / len(x))))
+                    .groupby(strat_vars + ['Variable', 'TYPE', 'TIME', 'DV'])
+                    .agg(Count=('DV', 'size'))
                     .reset_index())
+            plot_data_cs["Total"] = (
+                plot_data_cs.groupby(strat_vars + ["Variable", "TYPE", "TIME"])["Count"]
+                        .transform("sum"))
+            plot_data_cs["Rate"] = 100 * plot_data_cs["Count"] / plot_data_cs["Total"]
+
             dt_cs_all.append(plot_data_cs)
 
         plot_data_cs = pd.concat(dt_cs_all, ignore_index=True)
         plot_data = pd.concat([plot_data, plot_data_cs])
+    plot_data["Rate"] = plot_data["Rate"].round(1)
 
     cs_name = "counterfactual_" if dt_cs is not None else ""    
     plot_list = {}
@@ -293,7 +308,8 @@ def bin_traj_time_list(
         if save_path:
             os.makedirs(save_path, exist_ok=True)
             save_var = re.sub(r'[\/:*?"<>|]', "_", var)
-            filename = os.path.join(save_path, '%s_%s_%sbin_time_plot.png'%(mode,save_var,cs_name))
+            ext = '.png' if as_png else '.pdf'
+            filename = os.path.join(save_path, '%s_%s_%sperc_time_plot%s'%(mode,save_var,cs_name,ext))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -344,9 +360,10 @@ def bar_categorical(
         full_index = pd.MultiIndex.from_product(
             [all_dv, all_types], names=['DV', 'TYPE']
         )
- 
+        dv_vals = sorted(df['DV'].unique())
         df = df.set_index(['DV', 'TYPE']).reindex(full_index, fill_value=0).reset_index()
-    df['DV'] = df['DV'].astype(str)
+
+    df['DV'] = pd.Categorical(df['DV'], categories=dv_vals, ordered=True)
     if type_ == "Percentage":
         p = (ggplot(df, aes(x='DV', y='PERC', fill='TYPE')) +
              geom_bar(stat='identity', position=position_dodge(width=1)) +
@@ -385,7 +402,8 @@ def bar_categorical_list(
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
-    dpi: Optional[int] = 300) -> Dict[str, ggplot]:
+    dpi: Optional[int] = 300,
+    as_png: Optional[bool] = False) -> Dict[str, ggplot]:
     """
     Generates and optionally saves bar plots for all categorical variables listed in rp0.
 
@@ -403,6 +421,7 @@ def bar_categorical_list(
     :param width: Width of the saved plot in inches (used only if save_path is provided).
     :param height: Height of the saved plot in inches (used only if save_path is provided).
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
+    :param as_png: set to True if you want the plot to be saved as png
     :return: Dictionary of ggplot objects keyed by variable name.
     """
 
@@ -462,7 +481,8 @@ def bar_categorical_list(
         if save_path:
             os.makedirs(save_path, exist_ok=True)
             save_var = re.sub(r'[\/:*?"<>|]', "_", var)
-            filename = os.path.join(save_path, '%s_%s_%sbar_cat_%s_plot.png'%(mode,save_var,cs_name,name_))
+            ext = '.png' if as_png else '.pdf'
+            filename = os.path.join(save_path, '%s_%s_%sbar_cat_%s_plot%s'%(mode,save_var,cs_name,name_,ext))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -507,11 +527,24 @@ def trajectory_plot(
     """
 
     if achievement_plot:
-        p = (ggplot(plt_dt, aes(x='TIME', y='Rate', color='TYPE', group='TYPE')) +
-            geom_line(size=1) +
+        plt_dt = plt_dt.sort_values(["DV"])
+        p = (ggplot(plt_dt, aes(x='TIME', y='Rate', color='factor(DV)')) +
+            geom_point(plt_dt[plt_dt['TYPE'] == 'Observed'],aes(shape='TYPE'),
+                       size=2.8,alpha=0.9) +
+            geom_line(plt_dt[plt_dt['TYPE'] != 'Observed'],aes(linetype='TYPE'),
+                      size=1.2,alpha=0.9) +
             labs(x=f"Time ({time_unit})", y="Percentage of subjects who achieved outcome",
-                 title=var_name, fill=None, color=None) +
-            coord_cartesian() + ggstyle)
+                 title=var_name, color="Classes", shape=None, linetype=None) +
+            guides(color=guide_legend(order=2, title="Classes"),
+                   shape=guide_legend(order=1, title=''),
+                   linetype=guide_legend(order=1, title='')) +
+            coord_cartesian() + 
+            theme(
+                axis_title=element_text(size=18),
+                axis_text=element_text(size=18),
+                plot_title=element_text(size=18, ha='center'),
+                strip_text=element_text(size=18),
+                legend_position="right"))
     else:
         p = (ggplot(plt_dt, aes(x='Visit', y='med', color='TYPE', group='TYPE')) +
             geom_ribbon(aes(ymin='p5', ymax='p95', fill='TYPE'), alpha=0.2) +
@@ -539,7 +572,8 @@ def trajectory_plot_list(
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
-    dpi: Optional[int] = 300) -> Dict[str, ggplot]:
+    dpi: Optional[int] = 300,
+    as_png: Optional[bool] = False) -> Dict[str, ggplot]:
     """
     Generates and optionally saves ribbon plots for continuous variables across visits.
 
@@ -558,6 +592,7 @@ def trajectory_plot_list(
     :param width: Width of the saved plot in inches (used only if save_path is provided).
     :param height: Height of the saved plot in inches (used only if save_path is provided).
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
+    :param as_png: set to True if you want the plot to be saved as png
     :return: Dictionary of ggplot objects keyed by variable name.
     """
 
@@ -604,7 +639,8 @@ def trajectory_plot_list(
         if save_path:
             os.makedirs(save_path, exist_ok=True)
             save_var = re.sub(r'[\/:*?"<>|]', "_", var)
-            filename = os.path.join(save_path, '%s_%s_%strajectory_plot.png'%(mode,save_var,cs_name))
+            ext = '.png' if as_png else '.pdf'
+            filename = os.path.join(save_path, '%s_%s_%strajectory_plot%s'%(mode,save_var,cs_name,ext))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
@@ -617,7 +653,8 @@ def raincloud_plot(
     var_name: str,
     strat_vars: Optional[List[str]] = None,
     real_label: Optional[str] = "Real Data",
-    syn_label: Optional[str] = "Synthetic Data") -> ggplot:
+    syn_label: Optional[str] = "Synthetic Data",
+    dt_cs_label: Optional[List[str]] = []) -> ggplot:
     """
     Generates a raincloud plot (violin + boxplot + jitter) comparing Observed vs Reconstructed data.
 
@@ -626,9 +663,14 @@ def raincloud_plot(
     :param strat_vars: Optional list of variables to use for facetting.
     :param real_label: Label for the real data (default: "Real Data").
     :param syn_label: Label for the synthetic data (default: "Synthetic Data").
+    :param dt_cs_label: Label for the counterfactual data (default: []).
     :return: ggplot object.
     """
-    plt_dt["TYPE"] = pd.Categorical(plt_dt["TYPE"], categories=[real_label, syn_label])
+    plt_dt = plt_dt[
+        (plt_dt["TYPE"] != real_label) |
+        ((plt_dt["TYPE"] == real_label) & (plt_dt["REPI"] == 1))]
+
+    plt_dt["TYPE"] = pd.Categorical(plt_dt["TYPE"], categories=[real_label, syn_label] + dt_cs_label)
 
     p = (
         ggplot(plt_dt, aes(x='TYPE', y='DV', fill='TYPE', color='TYPE')) +
@@ -659,12 +701,15 @@ def raincloud_continuous_list(
     mode: Optional[str] = "Reconstructed",
     static: Optional[bool] = False,
     strat_vars: Optional[List[str]] = None,
+    dt_cs: Optional[pd.DataFrame] = None,
+    dt_cs_label: Optional[List[str]] = ["Counterfactual"],
     real_label: Optional[str] = "Real Data",
     syn_label: Optional[str] = "Synthetic Data",
     save_path: Optional[str] = None,
     width: Optional[int] = 8,
     height: Optional[int] = 6,
-    dpi: Optional[int] = 300) -> Dict[str, ggplot]:
+    dpi: Optional[int] = 300,
+    as_png: Optional[bool] = False) -> Dict[str, ggplot]:
 
     """
     Generates and optionally saves raincloud plots for continuous observed vs reconstructed variables
@@ -674,12 +719,15 @@ def raincloud_continuous_list(
     :param mode: String, usually "Reconstructed", used for filtering TYPE.
     :param static: If True, plots for static variables will be obtained.
     :param strat_vars: Optional list of variables to use for facetting.
+    :param dt_cs: Optional list of counterfactual DataFrames.
+    :param dt_cs_label: Optional list of labels for the counterfactual data.
     :param real_label: Label for the real data (default: "Real Data").
     :param syn_label: Label for the synthetic data (default: "Synthetic Data").
     :param save_path: Optional path to folder where plots should be saved. If not provided, plots are shown.
     :param width: Width of the saved plot in inches (used only if save_path is provided).
     :param height: Height of the saved plot in inches (used only if save_path is provided).
     :param dpi: Resolution (dots per inch) of the saved plot (used only if save_path is provided).
+    :param as_png: set to True if you want the plot to be saved as png
     :return: Dictionary of ggplot objects keyed by variable name.
     """
 
@@ -691,7 +739,6 @@ def raincloud_continuous_list(
         TIME_V = ['TIME']
     strat_vars = strat_vars or []
 
-    plot_list = {}
     plot_data = (
         dt[(dt["TYPE"].isin(["Observed", mode])) & (dt["Variable"].isin(rp0[col_name]))]
         .filter(items=["Variable", "DV", "SUBJID", "REPI", "TYPE"] + TIME_V + strat_vars)
@@ -709,24 +756,49 @@ def raincloud_continuous_list(
             "Observed": real_label,
             mode: syn_label})
 
+    if dt_cs is not None:
+        dt_cs_all = []
+        for index, element in enumerate(dt_cs):
+            plot_data_cs = (element[(element['TYPE'].isin(["Observed", mode])) &
+                    (element['Variable'].isin(rp0[col_name]))]
+                    .pivot(
+                        index=["SUBJID", "REPI", "Variable"] + TIME_V + strat_vars,
+                        columns="TYPE",
+                        values="DV")
+                    .reset_index()
+                    .dropna(subset=["Observed"]))        
+            plot_data_cs = plot_data_cs.rename(
+                columns={mode: dt_cs_label[index]}).drop(columns=["Observed"])
+            dt_cs_all.append(plot_data_cs)
+        plot_data_cs = pd.concat(dt_cs_all, ignore_index=True)
+        plot_data = plot_data.merge(plot_data_cs,
+            on=["SUBJID", "REPI", "Variable"],
+            how="inner")
+    else:
+        dt_cs_label = []
+
+    cs_name = "counterfactual_" if dt_cs is not None else ""    
+    plot_list = {}
     for var in rp0[col_name]:
         plot = raincloud_plot(
             plt_dt=plot_data[plot_data["Variable"] == var]
-            .melt(id_vars=["SUBJID", "Variable"] + TIME_V + (strat_vars or []),
-                    value_vars=[real_label, syn_label],
+            .melt(id_vars=["SUBJID", "Variable", "REPI"] + TIME_V + (strat_vars or []),
+                    value_vars=[real_label, syn_label] + dt_cs_label,
                     var_name="TYPE",
                     value_name="DV"),
             var_name=var,
             strat_vars=strat_vars,
             real_label=real_label,
-            syn_label=syn_label
+            syn_label=syn_label,
+            dt_cs_label=dt_cs_label
         )
         plot_list[var] = plot
 
         if save_path:
             os.makedirs(save_path, exist_ok=True)
             save_var = re.sub(r'[\/:*?"<>|]', "_", var)
-            filename = os.path.join(save_path, '%s_%s_raincloud_plot.png'%(mode,save_var))
+            ext = '.png' if as_png else '.pdf'
+            filename = os.path.join(save_path, '%s_%s_%sraincloud_plot%s'%(mode,save_var,cs_name,ext))
             plot.save(filename=filename, width=width, height=height, dpi=dpi)
         else:
             print(plot)
