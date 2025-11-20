@@ -1,8 +1,10 @@
+import logging
 import unittest
 
 import numpy as np
 import pandas as pd
 
+from syndat import normalized_correlation_difference
 from syndat.scores import correlation
 
 
@@ -212,3 +214,70 @@ class TestCorrelation(unittest.TestCase):
         self.assertEqual(result, 100,
                          "Correlation score should be calculated based on matching columns only and should be "
                          "100 for identical datasets with an extra column in synthetic data")
+
+    def test_correlation_drop_cat_defined(self):
+        real_data = pd.DataFrame({
+            'A': [1, 2, 3, 4, 5],
+            'B': [5, 4, 3, 2, 1],
+            'C': ['A', 'B', 'C', 'D', 'E']
+        })
+        synthetic_data = pd.DataFrame({
+            'A': [1, 2, 3, 4, 5],
+            'B': [5, 4, 3, 2, 1],
+            'C': ['A', 'A', 'B', 'B', 'B']
+        })
+        result = correlation(real_data, synthetic_data, cat_cols=['C'], ignore_cat=True)
+        self.assertEqual(result, 100, "Correlation score should be 100 for identical datasets "
+                                      "(after dropping categorical column)")
+
+
+    def test_correlation_drop_cat_heuristic(self):
+        real_data = pd.DataFrame({
+            'A': [1, 2, 3, 4, 5],
+            'B': [5, 4, 3, 2, 1],
+            'C': ['A', 'B', 'C', 'D', 'E']
+        })
+        synthetic_data = pd.DataFrame({
+            'A': [1, 2, 3, 4, 5],
+            'B': [5, 4, 3, 2, 1],
+            'C': ['A', 'A', 'B', 'B', 'B']
+        })
+        result = correlation(real_data, synthetic_data, ignore_cat=True)
+        self.assertEqual(result, 100, "Correlation score should be 100 for identical datasets "
+                                      "(after dropping categorical column)")
+
+    def test_correlation_drop_cat_heuristic_none_detected(self):
+        real_data = pd.DataFrame({
+            'A': [1, 2, 3, 4, 5],
+            'B': [5, 4, 3, 2, 1],
+            'C': [5, 4, 3, 2, 1],
+        })
+        synthetic_data = pd.DataFrame({
+            'A': [1, 2, 3, 4, 5],
+            'B': [5, 4, 3, 2, 1],
+            'C': [5, 4, 3, 2, 1],
+        })
+        result = correlation(real_data, synthetic_data, ignore_cat=True)
+        self.assertEqual(result, 100, "Correlation score should be 100 for identical datasets "
+                                      "(after dropping categorical column)")
+
+    def test_correlation_drop_cat_raise_warning(self):
+        real_data = pd.DataFrame({
+            'A': [1, 2, 3, 4, 5],
+            'B': [5, 4, 3, 2, 1],
+            'C': [5, 4, 3, 2, 1],
+        })
+        synthetic_data = pd.DataFrame({
+            'A': [1, 2, 3, 4, 5],
+            'B': [5, 4, 3, 2, 1],
+            'C': [5, 4, 3, 2, 1],
+        })
+        logger_name = "syndat.metrics"
+        with self.assertLogs(logger_name, level="WARNING") as log_cm:
+            normalized_correlation_difference(
+                real_data, synthetic_data, cat_cols=['C'], ignore_cat=False
+            )
+        self.assertTrue(
+            any("categorical columns will be included" in message for message in log_cm.output)
+        )
+
