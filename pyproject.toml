@@ -25,14 +25,14 @@ pandas = "^2.1.4"
 scikit-learn = "^1.5.1"
 matplotlib = "^3.8.2"
 seaborn = "^0.13.0"
-shap = "^0.47.0"
+shap = ">=0.47,<0.50"
 numpy = ">1.26.2, <3.0.0"
 scipy = "^1.11.4"
 plotnine = "^0.13.6"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
-pytest-cov = "^6.2.1"
+pytest-cov = ">=6.2.1,<8.0.0"
 
 [tool.poetry.urls]
 documentation = "https://github.com/SCAI-BIO/syndat#readme"
