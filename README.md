@@ -1,6 +1,6 @@
 <picture align="center">
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/SCAI-BIO/syndat/blob/docs/logo/docs/logo/syndat_white.svg">
-  <img alt="Pandas Logo" src="https://github.com/SCAI-BIO/syndat/blob/docs/logo/docs/logo/syndat.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/SCAI-BIO/syndat/refs/heads/main/docs/logo/syndat_white.svg">
+  <img alt="Pandas Logo" src="https://raw.githubusercontent.com/SCAI-BIO/syndat/refs/heads/main/docs/logo/syndat.svg">
 </picture>
 
 [![DOI](https://zenodo.org/badge/734391183.svg)](https://doi.org/10.5281/zenodo.15791976)
