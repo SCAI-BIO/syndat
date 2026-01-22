@@ -1,4 +1,8 @@
-# Syndat
+<picture align="center">
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/SCAI-BIO/syndat/blob/docs/logo/docs/logo/syndat_white.svg">
+  <img alt="Pandas Logo" src="https://github.com/SCAI-BIO/syndat/blob/docs/logo/docs/logo/syndat.svg">
+</picture>
+
 [![DOI](https://zenodo.org/badge/734391183.svg)](https://doi.org/10.5281/zenodo.15791976)
 ![tests](https://github.com/SCAI-BIO/syndat/actions/workflows/tests.yaml/badge.svg) [![codecov](https://codecov.io/gh/SCAI-BIO/syndat/branch/main/graph/badge.svg)](https://codecov.io/gh/SCAI-BIO/syndat) ![docs](https://readthedocs.org/projects/syndat/badge/?version=latest&style=flat) ![version](https://img.shields.io/pypi/v/syndat)
 
