@@ -1,0 +1,11 @@
+<svg width="360" height="120" xmlns="http://www.w3.org/2000/svg">
+  <!-- Nodes in brand blue -->
+  <circle cx="48" cy="60" r="10" fill="#005BBB"></circle>
+  <circle cx="96" cy="60" r="10" fill="#005BBB"></circle>
+  
+  <!-- Connecting line in brand blue -->
+  <line x1="58" y1="60" x2="86" y2="60" stroke="#005BBB" stroke-width="4"></line>
+  
+  <!-- Text in dark gray -->
+  <text x="132" y="70" font-family="Montserrat, sans-serif" font-size="48" fill="#222">syndat</text>
+</svg>
