@@ -1,11 +1,11 @@
-<svg width="300" height="100" xmlns="http://www.w3.org/2000/svg">
+<svg width="360" height="120" xmlns="http://www.w3.org/2000/svg">
   <!-- Nodes in brand blue -->
-  <circle cx="40" cy="50" r="8" fill="#005BBB"></circle>
-  <circle cx="80" cy="50" r="8" fill="#005BBB"></circle>
+  <circle cx="48" cy="60" r="10" fill="#005BBB"></circle>
+  <circle cx="96" cy="60" r="10" fill="#005BBB"></circle>
   
   <!-- Connecting line in brand blue -->
-  <line x1="48" y1="50" x2="72" y2="50" stroke="#005BBB" stroke-width="3"></line>
+  <line x1="58" y1="60" x2="86" y2="60" stroke="#005BBB" stroke-width="4"></line>
   
   <!-- Text in white -->
-  <text x="110" y="58" font-family="Montserrat, sans-serif" font-size="40" fill="white">syndat</text>
+  <text x="132" y="70" font-family="Montserrat, sans-serif" font-size="48" fill="white">syndat</text>
 </svg>
