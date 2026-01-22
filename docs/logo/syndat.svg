@@ -1,0 +1,16 @@
+<svg width="300" height="100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="300" height="100" fill="white"></rect>
+
+  <!-- Nodes -->
+  <circle cx="40" cy="50" r="8" fill="#005BBB"></circle>
+  <circle cx="80" cy="50" r="8" fill="#005BBB"></circle>
+
+  <!-- Connecting Line -->
+  <line x1="48" y1="50" x2="72" y2="50" stroke="#005BBB" stroke-width="3"></line>
+
+  <!-- Text -->
+  <text x="110" y="58" font-family="Montserrat, sans-serif" font-size="40" fill="#222">
+    syndat
+  </text>
+</svg>
