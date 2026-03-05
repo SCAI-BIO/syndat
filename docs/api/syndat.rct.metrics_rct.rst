@@ -1,5 +1,5 @@
 syndat.rct.metrics_rct
-=============
+======================
 
 .. automodule:: syndat.rct.metrics_rct
    :members:

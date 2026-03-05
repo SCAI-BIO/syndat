@@ -34,7 +34,7 @@ def distribution(real: pd.DataFrame, synthetic: pd.DataFrame, n_unique_threshold
     :param real: The real data.
     :param synthetic: The synthetic data.
     :param n_unique_threshold: Threshold to determine at which number of unique values bins will span over several
-    values.
+            values.
     :return: Distribution Similarity Score
     """
     # Initialize a dictionary to store JSD values for each column
