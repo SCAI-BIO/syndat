@@ -14,19 +14,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
 
     steps:
     - uses: actions/checkout@v3
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     
     - name: Install Poetry
       run: |
-        curl -sSL https://install.python-poetry.org | python3 - --version 1.4.2
+        curl -sSL https://install.python-poetry.org | python3 - --version 2.2.1
 
     - name: Install dependencies
       run: |
@@ -34,9 +34,8 @@ jobs:
 
     - name: Lint with flake8
       run: |
-        poetry add flake8
-        poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        poetry run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        poetry run flake8 syndat tests examples --count --select=E9,F63,F7,F82 --show-source --statistics
+        poetry run flake8 syndat tests examples --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Test with pytest
       run: |

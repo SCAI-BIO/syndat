@@ -75,11 +75,11 @@ def convert_to_syndat_scores(
     df: pd.DataFrame,
     only_pos: bool = False) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Converts a DataFrame containing observed and predicted (REC_) columns into two separate DataFrames,
+    Converts a DataFrame containing observed and predicted (``REC_``) columns into two separate DataFrames,
     synchronizing values based on MASK columns and optionally clipping predicted values to be non-negative.
 
-    :param df: DataFrame containing columns with prefixes 'OBS_', 'REC_', 'MASK_' and a 'REPI' column.
-    :param only_pos: If True, clips negative values in 'REC_' columns to zero.
+    :param df: DataFrame containing columns with prefixes ``OBS_``, ``REC_``, ``MASK_`` and a ``REPI`` column.
+    :param only_pos: If True, clips negative values in ``REC_`` columns to zero.
     :return: Tuple of two DataFrames: (observed_df, predicted_df) with synchronized and filtered values.
     """
     if "REPI" not in df.columns:
