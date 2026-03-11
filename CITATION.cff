@@ -23,6 +23,7 @@ contributors:
     family-names: Lentzen
     affiliation: Fraunhofer Institute for Algorithms and Scientific Computing SCAI
     email: manuel.lentzen@scai.fraunhofer.de
+    orcid: https://orcid.org/0000-0002-1344-4132
 
 repository-code: https://github.com/SCAI-BIO/syndat
 repository-artifact: https://pypi.org/project/syndat/
