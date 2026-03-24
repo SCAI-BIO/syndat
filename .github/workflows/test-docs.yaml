@@ -12,23 +12,13 @@ on:
 jobs:
   docs:
     runs-on: ubuntu-latest
+    container: ghcr.io/astral-sh/uv:python3.12-bookworm
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.13'
-
-    - name: Install Poetry
-      run: curl -sSL https://install.python-poetry.org | python3 - --version 2.2.1
-
     - name: Install dependencies
-      run: |
-        poetry install --with docs
+      run: uv sync --frozen --no-default-groups --group docs
 
     - name: Build docs
-      run: |
-        poetry run sphinx-build -b html docs docs/_build/html
-        
+      run: uv run sphinx-build -b html docs docs/_build/html

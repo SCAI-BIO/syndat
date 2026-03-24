@@ -10,34 +10,24 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    container: ghcr.io/astral-sh/uv:python3.12-bookworm
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
-
-    - name: Install Poetry
-      run: |
-        curl -sSL https://install.python-poetry.org | python3 -
 
     - name: Update package version
       run: |
         VERSION=${{ github.event.release.tag_name }}
         sed -i 's/__version__ = ".*"/__version__ = "'${VERSION}'"/' syndat/_version.py
-        poetry version $VERSION
+        uv version $VERSION
 
     - name: Install dependencies
-      run: |
-        poetry install
+      run: uv sync --frozen
 
     - name: Build package
-      run: |
-        poetry build
+      run: uv build
 
     - name: Publish package
       env:
-        POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
-      run: |
-        poetry publish --username __token__ --password $POETRY_PYPI_TOKEN_PYPI
+        UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+      run: uv publish
