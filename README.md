@@ -32,7 +32,7 @@ pip install syndat
 ### Jenson-Shannon Distance
 
 The Jenson-Shannon distance is a measure of similarity between two probability distributions. In our case, we compute
-probability distributions for each feature in the datasets and compute and can thus compare the statistic feature 
+probability distributions for each feature in the datasets and can thus compare the statistic feature 
 similarity of two dataframes. 
 
 It is bounded between 0 and 1, with 0 indicating identical distributions. 
