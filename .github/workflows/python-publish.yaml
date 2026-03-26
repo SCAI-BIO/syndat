@@ -21,9 +21,6 @@ jobs:
         sed -i 's/__version__ = ".*"/__version__ = "'${VERSION}'"/' syndat/_version.py
         uv version $VERSION
 
-    - name: Install dependencies
-      run: uv sync --frozen --no-default-groups
-
     - name: Build package
       run: uv build
 
