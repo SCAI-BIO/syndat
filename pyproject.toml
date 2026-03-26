@@ -5,7 +5,7 @@ description = "A library for evaluation & visualization of synthetic data."
 authors = [{ name = "Tim Adams", email = "tim.adams@scai.fraunhofer.de" }]
 requires-python = ">=3.9,<3.14"
 readme = "README.md"
-license = "MIT"
+license = { file = "LICENSE" }
 keywords = [
     "synthetic-data",
     "data-quality",
