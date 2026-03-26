@@ -14,6 +14,8 @@ def tests(session: nox.Session) -> None:
         "--frozen",
         "--python",
         session.python,
+        "--group",
+        "dev",
         external=True,
     )
     session.run(
