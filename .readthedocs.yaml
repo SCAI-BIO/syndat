@@ -4,10 +4,10 @@ build:
   os: ubuntu-24.04
   tools:
     python: "3.12"
-    uv: "latest"
   commands:
-    - uv sync --frozen --no-default-groups --group docs
-    - uv run sphinx-build -b html docs $READTHEDOCS_OUTPUT/html
+    - python -m pip install uv
+    - python -m uv sync --frozen --no-default-groups --group docs
+    - python -m uv run sphinx-build -b html docs $READTHEDOCS_OUTPUT/html
 
 sphinx:
   configuration: docs/conf.py
