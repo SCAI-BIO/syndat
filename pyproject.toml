@@ -3,7 +3,7 @@ name = "syndat"
 version = "0.0.3"
 description = "A library for evaluation & visualization of synthetic data."
 authors = [{ name = "Tim Adams", email = "tim.adams@scai.fraunhofer.de" }]
-requires-python = ">=3.9,<3.14"
+requires-python = ">=3.10,<3.14"
 readme = "README.md"
 license = { file = "LICENSE" }
 keywords = [
@@ -15,7 +15,6 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
