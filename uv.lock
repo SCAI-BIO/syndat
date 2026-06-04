@@ -1248,7 +1248,7 @@ wheels = [
 
 [[package]]
 name = "plotnine"
-version = "0.15.4"
+version = "0.15.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "matplotlib" },
@@ -1262,9 +1262,9 @@ dependencies = [
     { name = "statsmodels", version = "0.14.4", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'emscripten'" },
     { name = "statsmodels", version = "0.14.6", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'emscripten'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/96/5d/01f3c8780b536d9b723ae92ed2be6e7aea7ef3a158902736aec608b8829a/plotnine-0.15.4.tar.gz", hash = "sha256:4cc47539575670dbcbeed9cd44d0c3bb7973f815f679136ff3b70314266719b4", size = 6854979, upload-time = "2026-05-05T12:03:14.071Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e5/ac/89f40b5688e5034bb16b5a430376d3a5619982875935e9f20b7f4f223c26/plotnine-0.15.5.tar.gz", hash = "sha256:9bc5e06a7d9558f4252374348fde0125112c571ef76ccefdd8f507d007ee55b9", size = 6855101, upload-time = "2026-06-02T21:22:14.941Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/35/c8/5e28681073e583e76ca043d0f1e84057743c68017f0ae50ae1401c442612/plotnine-0.15.4-py3-none-any.whl", hash = "sha256:a55dde4bd00bf4c395bb4c99b36f25960625bf63e10ae4777cc7d83d878b1625", size = 1572543, upload-time = "2026-05-05T12:03:12.082Z" },
+    { url = "https://files.pythonhosted.org/packages/ec/42/b1472fbd2c675087628f930cfe2ae1f63102d4074af7a05c1387a3b03a50/plotnine-0.15.5-py3-none-any.whl", hash = "sha256:03cc520299be5f32d405c05cb547465acf668d61115e8adb3b9a0bccc271f50e", size = 1572749, upload-time = "2026-06-02T21:22:13.152Z" },
 ]
 
 [[package]]
