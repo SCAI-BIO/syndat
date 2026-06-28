@@ -4,7 +4,7 @@
 </picture>
 
 [![DOI](https://zenodo.org/badge/734391183.svg)](https://doi.org/10.5281/zenodo.15791976)
-![tests](https://github.com/SCAI-BIO/syndat/actions/workflows/tests.yaml/badge.svg) [![codecov](https://codecov.io/gh/SCAI-BIO/syndat/branch/main/graph/badge.svg)](https://codecov.io/gh/SCAI-BIO/syndat) ![docs](https://readthedocs.org/projects/syndat/badge/?version=latest&style=flat) ![version](https://img.shields.io/pypi/v/syndat)
+![tests](https://github.com/SCAI-BIO/syndat/actions/workflows/tests.yaml/badge.svg) [![codecov](https://codecov.io/gh/SCAI-BIO/syndat/branch/main/graph/badge.svg)](https://codecov.io/gh/SCAI-BIO/syndat) ![docs](https://readthedocs.org/projects/syndat/badge/?version=latest&style=flat) ![version](https://img.shields.io/pypi/v/syndat) [![PyPI Downloads](https://static.pepy.tech/personalized-badge/syndat?period=total&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=BLUE&left_text=downloads)](https://pepy.tech/projects/syndat)
 
 [![NFDI4Health](https://img.shields.io/badge/Developed_in-NFDI4Health-1E88E5)](https://www.nfdi4health.de)
 [![SYNTHIA](https://img.shields.io/badge/Extended_in-SYNTHIA-8E24AA)](https://www.ihi-synthia.eu)
