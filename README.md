@@ -3,12 +3,9 @@
   <img alt="Syndat Logo" src="https://raw.githubusercontent.com/SCAI-BIO/syndat/refs/heads/main/docs/logo/syndat.svg">
 </picture>
 
-[![DOI](https://zenodo.org/badge/734391183.svg)](https://doi.org/10.5281/zenodo.15791976)
-![tests](https://github.com/SCAI-BIO/syndat/actions/workflows/tests.yaml/badge.svg) [![codecov](https://codecov.io/gh/SCAI-BIO/syndat/branch/main/graph/badge.svg)](https://codecov.io/gh/SCAI-BIO/syndat) ![docs](https://readthedocs.org/projects/syndat/badge/?version=latest&style=flat) ![version](https://img.shields.io/pypi/v/syndat) [![PyPI Downloads](https://static.pepy.tech/personalized-badge/syndat?period=total&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=BLUE&left_text=downloads)](https://pepy.tech/projects/syndat)
+<a href="https://doi.org/10.5281/zenodo.15791976"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.15791976-blue.svg" alt="DOI"></a>&nbsp;<a href="https://github.com/SCAI-BIO/syndat/actions/workflows/tests.yaml"><img src="https://github.com/SCAI-BIO/syndat/actions/workflows/tests.yaml/badge.svg" alt="tests"></a>&nbsp;<a href="https://codecov.io/gh/SCAI-BIO/syndat"><img src="https://codecov.io/gh/SCAI-BIO/syndat/branch/main/graph/badge.svg" alt="codecov"></a>&nbsp;<a href="https://readthedocs.org/projects/syndat/"><img src="https://readthedocs.org/projects/syndat/badge/?version=latest&style=flat" alt="docs"></a>&nbsp;<a href="https://pypi.org/project/syndat/"><img src="https://img.shields.io/pypi/v/syndat" alt="version"></a>&nbsp;<a href="https://pepy.tech/projects/syndat"><img src="https://static.pepy.tech/personalized-badge/syndat?period=total&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=BLUE&left_text=downloads" alt="PyPI Downloads"></a>
 
-[![NFDI4Health](https://img.shields.io/badge/Developed_in-NFDI4Health-1E88E5)](https://www.nfdi4health.de)
-[![SYNTHIA](https://img.shields.io/badge/Extended_in-SYNTHIA-8E24AA)](https://www.ihi-synthia.eu)
-
+<a href="https://www.nfdi4health.de"><img src="https://img.shields.io/badge/Developed_in-NFDI4Health-1E88E5" alt="NFDI4Health"></a>&nbsp;<a href="https://www.ihi-synthia.eu"><img src="https://img.shields.io/badge/Extended_in-SYNTHIA-8E24AA" alt="SYNTHIA"></a>
 
 
 # About
