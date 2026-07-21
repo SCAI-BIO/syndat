@@ -146,3 +146,22 @@ This work was done as part of the [NFDI4Health](https://www.nfdi4health.de) Cons
 
 It is currently also being extended as part of the [SYNTHIA](https://www.ihi-synthia.eu/) collaboration.
 
+
+# Citation
+
+If you use **Syndat** in your research, please cite as:
+
+```bibtex
+@article{Adams_On_the_fidelity_2025,
+  author  = {Adams, Tim and Birkenbihl, Colin and Otte, Karen and
+             Ng, Hwei Geok and Rieling, Jonas Adrian and
+             Näher, Anatol-Fiete and Sax, Ulrich and
+             Prasser, Fabian and Fröhlich, Holger},
+  title   = {On the fidelity versus privacy and utility trade-off of synthetic patient data},
+  journal = {iScience},
+  volume  = {28},
+  year    = {2025},
+  doi     = {10.1016/j.isci.2025.112382}
+}
+```
+
