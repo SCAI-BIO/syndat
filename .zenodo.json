@@ -1,0 +1,74 @@
+{
+  "title": "syndat",
+  "description": "Syndat is a software package that provides basic functionalities for the evaluation and visualisation of synthetic data.",
+  "creators": [
+    {
+      "name": "Adams, Tim",
+      "orcid": "https://orcid.org/0000-0002-2823-0102",
+      "affiliation": "Fraunhofer Institute for Algorithms and Scientific Computing"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Fröhlich, Holger",
+      "orcid": "https://orcid.org/0000-0002-5328-1243",
+      "affiliation": "Fraunhofer Institute for Algorithms and Scientific Computing",
+      "type": "Supervisor"
+    },
+    {
+      "name": "Valderrama, Diego",
+      "orcid": "https://orcid.org/0000-0002-3450-0359",
+      "affiliation": "Fraunhofer Institute for Algorithms and Scientific Computing",
+      "type": "Researcher"
+    },
+    {
+      "name": "Lentzen, Manuel",
+      "orcid": "https://orcid.org/0000-0002-1344-4132",
+      "affiliation": "Fraunhofer Institute for Algorithms and Scientific Computing",
+      "type": "Researcher"
+    }
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/SCAI-BIO/syndat",
+      "relation": "isSupplementTo",
+      "scheme": "url",
+      "resource_type": "software"
+    },
+    {
+      "identifier": "10.1016/j.isci.2025.112382",
+      "relation": "references",
+      "scheme": "doi",
+      "resource_type": "publication-article"
+    },
+    {
+      "identifier": "10.3233/SHTI240834",
+      "relation": "references",
+      "scheme": "doi",
+      "resource_type": "publication-conferencepaper"
+    },
+    {
+      "identifier": "https://syndat.scai.fraunhofer.de/",
+      "relation": "isRelatedTo",
+      "scheme": "url",
+      "resource_type": "other"
+    }
+  ],
+  "keywords": [
+    "synthetic data",
+    "data quality",
+    "data privacy",
+    "data utility",
+    "clinical data",
+    "data visualization"
+  ],
+  "communities": [
+    {
+      "identifier": "0b37260a-f619-4216-b12c-2a21548b9c89"
+    }
+  ],
+  "license": "Apache-2.0",
+  "upload_type": "software",
+  "access_right": "open",
+  "language": "eng"
+}
