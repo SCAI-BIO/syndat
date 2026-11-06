@@ -15,6 +15,8 @@ Beyond metrics, Syndat visualizes how close synthetic data is to the real data: 
 
 Syndat is aimed at researchers and data scientists working with sensitive health data who need to check whether a synthetic dataset preserves statistical properties before using it for analysis or model development. See the [iScience paper](https://doi.org/10.1016/j.isci.2025.112382) for a worked evaluation of the fidelity versus privacy and utility trade-off of synthetic patient data.
 
+For a browser-based workflow, the [SYNDAT Dashboard](https://syndat.scai.fraunhofer.de) wraps Syndat in a web application that adds privacy risk estimates (via [anonymeter](https://github.com/statice/anonymeter)) alongside the quality scores. Use it if you need a privacy assessment; the `syndat` package itself covers quality only.
+
 # Installation
 
 Install via pip:
@@ -144,13 +146,6 @@ An example demonstrating how to compute distribution, discrimination, and correl
 # Documentation
 
 Full API documentation and a quickstart guide are available at [syndat.readthedocs.io](https://syndat.readthedocs.io), including an overview of the [synthetic data quality metrics](https://syndat.readthedocs.io/en/latest/metrics.html) and how to interpret them.
-
-# Related projects
-
-- [SYNDAT Dashboard](https://github.com/nfdi4health/syndat-dashboard) — web application built on Syndat that adds privacy risk estimates (via [anonymeter](https://github.com/statice/anonymeter)) alongside the quality scores. Use it if you need privacy assessment; the `syndat` package itself covers quality only.
-- [SDMetrics](https://github.com/sdv-dev/SDMetrics) — general-purpose quality and fidelity metrics for synthetic tabular, relational and time-series data.
-- [synthcity](https://github.com/vanderschaarlab/synthcity) — synthetic data generation and benchmarking suite with a broad set of metrics.
-- [SDV](https://github.com/sdv-dev/SDV) — synthetic data generators (CTGAN, TVAE, Copulas) that pair well with Syndat for evaluation.
 
 # Acknowledgements
 
