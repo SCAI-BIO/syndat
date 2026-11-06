@@ -9,13 +9,9 @@
 
 # About
 
-Syndat is a Python library to **evaluate and visualize the quality of synthetic patient and clinical trial data**. It computes synthetic data quality metrics for tabular datasets — Jensen-Shannon distance, normalized correlation difference and discriminator AUC — and aggregates them into three scores (distribution, correlation and discrimination) that range from 0 to 100.
+Syndat is a Python library to evaluate and visualize the quality of synthetic patient and clinical trial data. It computes synthetic data quality metrics for tabular datasets and aggregates them into three normalized scores (distribution, correlation and discrimination). Beyond metrics, Syndat visualizes how close synthetic data is to the real data: feature distributions, correlation structures, summary statistics and SHAP-based discrimination plots. It also allows users to generate stratified and interpretable visualisations, including raincloud plots, GOF plots, and trajectory comparisons, offering deeper insights into the quality of synthetic clinical data across different subgroups.
 
-Beyond metrics, Syndat visualizes how close synthetic data is to the real data: feature distributions, correlation structures, summary statistics and SHAP-based discrimination plots. It also allows users to generate stratified and interpretable visualisations, including raincloud plots, GOF plots, and trajectory comparisons, offering deeper insights into the quality of synthetic clinical data across different subgroups.
-
-Syndat is aimed at researchers and data scientists working with sensitive health data who need to check whether a synthetic dataset preserves statistical properties before using it for analysis or model development. See the [iScience paper](https://doi.org/10.1016/j.isci.2025.112382) for a worked evaluation of the fidelity versus privacy and utility trade-off of synthetic patient data.
-
-For a browser-based workflow, the [SYNDAT Dashboard](https://syndat.scai.fraunhofer.de) wraps Syndat in a web application that adds privacy risk estimates (via [anonymeter](https://github.com/statice/anonymeter)) alongside the quality scores. Use it if you need a privacy assessment; the `syndat` package itself covers quality only.
+For a browser-based workflow, the [SYNDAT Dashboard](https://syndat.scai.fraunhofer.de](https://github.com/nfdi4health/syndat-dashboard)) wraps Syndat in a web application that adds privacy risk estimates (via [anonymeter](https://github.com/statice/anonymeter)) alongside the quality scores. Use it if you need a privacy assessment; the `syndat` package itself covers quality only.
 
 # Installation
 
@@ -155,6 +151,8 @@ It is currently also being extended as part of the [SYNTHIA](https://www.ihi-syn
 
 
 # Citation
+
+Syndat is aimed at researchers and data scientists working with sensitive health data who need to check whether a synthetic dataset preserves statistical properties before using it for analysis or model development.
 
 If you use **Syndat** in your research, please cite as:
 
