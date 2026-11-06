@@ -1,0 +1,182 @@
+{
+  "$schema": "https://raw.githubusercontent.com/tiadams/zenodo-schema-sync/main/schema/zenodo-sync.schema.json",
+  "concept": "15791976",
+  "repository": "https://github.com/SCAI-BIO/syndat",
+  "access": {
+    "record": "public",
+    "files": "public",
+    "embargo": {
+      "active": false
+    }
+  },
+  "files": {
+    "enabled": true
+  },
+  "metadata": {
+    "resource_type": "software",
+    "title": "syndat",
+    "description": "Syndat is a Python library to evaluate and visualize the quality of synthetic patient and clinical trial data. It computes distribution, correlation and discrimination metrics and aggregates them into normalized quality scores.",
+    "creators": [
+      {
+        "person_or_org": {
+          "type": "personal",
+          "name": "Adams, Tim",
+          "given_name": "Tim",
+          "family_name": "Adams",
+          "identifiers": [
+            {
+              "identifier": "0000-0002-2823-0102",
+              "scheme": "orcid"
+            }
+          ]
+        },
+        "affiliations": [
+          "Fraunhofer Institute for Algorithms and Scientific Computing"
+        ]
+      }
+    ],
+    "contributors": [
+      {
+        "person_or_org": {
+          "type": "personal",
+          "name": "Fröhlich, Holger",
+          "given_name": "Holger",
+          "family_name": "Fröhlich",
+          "identifiers": [
+            {
+              "identifier": "0000-0002-5328-1243",
+              "scheme": "orcid"
+            }
+          ]
+        },
+        "role": "supervisor",
+        "affiliations": [
+          "Fraunhofer Institute for Algorithms and Scientific Computing",
+          "University Hospital Bonn, Institute for Digital Medicine",
+          "Bonn-Aachen International Center for Information Technology (b-it)"
+        ]
+      },
+      {
+        "person_or_org": {
+          "type": "personal",
+          "name": "Valderrama, Diego",
+          "given_name": "Diego",
+          "family_name": "Valderrama",
+          "identifiers": [
+            {
+              "identifier": "0000-0002-3450-0359",
+              "scheme": "orcid"
+            }
+          ]
+        },
+        "role": "researcher",
+        "affiliations": [
+          "Fraunhofer Institute for Algorithms and Scientific Computing"
+        ]
+      },
+      {
+        "person_or_org": {
+          "type": "personal",
+          "name": "Lentzen, Manuel",
+          "given_name": "Manuel",
+          "family_name": "Lentzen",
+          "identifiers": [
+            {
+              "identifier": "0000-0002-1344-4132",
+              "scheme": "orcid"
+            }
+          ]
+        },
+        "role": "researcher",
+        "affiliations": [
+          "Fraunhofer Institute for Algorithms and Scientific Computing"
+        ]
+      }
+    ],
+    "subjects": [
+      "synthetic data",
+      "data quality",
+      "clinical data",
+      "data visualization",
+      "synthetic patient data",
+      "clinical trial data",
+      "health informatics",
+      "synthetic data evaluation"
+    ],
+    "languages": [
+      "eng"
+    ],
+    "rights": [
+      "apache-2.0"
+    ],
+    "copyright": "Copyright 2023 Fraunhofer SCAI",
+    "related_identifiers": [
+      {
+        "identifier": "https://github.com/SCAI-BIO/syndat",
+        "scheme": "url",
+        "relation_type": "issupplementto",
+        "resource_type": "software"
+      },
+      {
+        "identifier": "https://pypi.org/project/syndat/",
+        "scheme": "url",
+        "relation_type": "issupplementto",
+        "resource_type": "software"
+      },
+      {
+        "identifier": "10.5281/zenodo.23033951",
+        "scheme": "doi",
+        "relation_type": "isrequiredby",
+        "resource_type": "software"
+      },
+      {
+        "identifier": "10.1016/j.isci.2025.112382",
+        "scheme": "doi",
+        "relation_type": "references",
+        "resource_type": "publication-article"
+      },
+      {
+        "identifier": "10.3233/SHTI240834",
+        "scheme": "doi",
+        "relation_type": "references",
+        "resource_type": "publication-conferencepaper"
+      },
+      {
+        "identifier": "https://syndat.scai.fraunhofer.de/",
+        "scheme": "url",
+        "relation_type": "references",
+        "resource_type": "other"
+      }
+    ],
+    "funding": [
+      {
+        "funder": {
+          "id": "0305k8y39"
+        }
+      },
+      {
+        "funder": {
+          "id": "00k4n6c32"
+        },
+        "award": {
+          "id": "00k4n6c32::101172872"
+        }
+      },
+      {
+        "funder": {
+          "id": "001aqnf71"
+        },
+        "award": {
+          "id": "001aqnf71::10132181"
+        }
+      }
+    ]
+  },
+  "custom_fields": {
+    "code:codeRepository": "https://github.com/SCAI-BIO/syndat",
+    "code:programmingLanguage": [
+      "python"
+    ],
+    "code:developmentStatus": "active"
+  }
+}
