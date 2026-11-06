@@ -3,16 +3,19 @@
   <img alt="Syndat Logo" src="https://raw.githubusercontent.com/SCAI-BIO/syndat/refs/heads/main/docs/logo/syndat.svg">
 </picture>
 
-<a href="https://doi.org/10.5281/zenodo.15791976"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.15791976-blue.svg" alt="DOI"></a>&nbsp;<a href="https://github.com/SCAI-BIO/syndat/actions/workflows/tests.yaml"><img src="https://github.com/SCAI-BIO/syndat/actions/workflows/tests.yaml/badge.svg" alt="tests"></a>&nbsp;<a href="https://codecov.io/gh/SCAI-BIO/syndat"><img src="https://codecov.io/gh/SCAI-BIO/syndat/branch/main/graph/badge.svg" alt="codecov"></a>&nbsp;<a href="https://readthedocs.org/projects/syndat/"><img src="https://readthedocs.org/projects/syndat/badge/?version=latest&style=flat" alt="docs"></a>&nbsp;<a href="https://pypi.org/project/syndat/"><img src="https://img.shields.io/pypi/v/syndat" alt="version"></a>&nbsp;<a href="https://pepy.tech/projects/syndat"><img src="https://static.pepy.tech/personalized-badge/syndat?period=total&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=BLUE&left_text=downloads" alt="PyPI Downloads"></a>
+<a href="https://doi.org/10.5281/zenodo.15791976"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.15791976-blue.svg" alt="DOI"></a>&nbsp;<a href="https://github.com/SCAI-BIO/syndat/actions/workflows/tests.yaml"><img src="https://github.com/SCAI-BIO/syndat/actions/workflows/tests.yaml/badge.svg" alt="tests"></a>&nbsp;<a href="https://codecov.io/gh/SCAI-BIO/syndat"><img src="https://codecov.io/gh/SCAI-BIO/syndat/branch/main/graph/badge.svg" alt="codecov"></a>&nbsp;<a href="https://syndat.readthedocs.io"><img src="https://img.shields.io/readthedocs/syndat?label=docs" alt="docs"></a>&nbsp;<a href="https://pypi.org/project/syndat/"><img src="https://img.shields.io/pypi/v/syndat" alt="version"></a>&nbsp;<a href="https://pepy.tech/projects/syndat"><img src="https://static.pepy.tech/personalized-badge/syndat?period=total&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=BLUE&left_text=downloads" alt="PyPI Downloads"></a>
 
 <a href="https://www.nfdi4health.de"><img src="https://img.shields.io/badge/Developed_in-NFDI4Health-1E88E5" alt="NFDI4Health"></a>&nbsp;<a href="https://www.ihi-synthia.eu"><img src="https://img.shields.io/badge/Extended_in-SYNTHIA-8E24AA" alt="SYNTHIA"></a>
 
-
 # About
 
-Syndat is a software package that provides basic functionalities for the evaluation and visualisation of synthetic data. Quality scores can be computed on 3 base metrics (Discrimation, Correlation and Distribution) and data may be visualized to inspect correlation structures or statistical distribution plots. 
+Syndat is a Python library to **evaluate and visualize the quality of synthetic patient and clinical trial data**. It computes synthetic data quality metrics for tabular datasets — Jensen-Shannon distance, normalized correlation difference and discriminator AUC — and aggregates them into three scores (distribution, correlation and discrimination) that range from 0 to 100.
 
-Syndat also allows users to generate stratified and interpretable visualisations, including raincloud plots, GOF plots, and trajectory comparisons, offering deeper insights into the quality of synthetic clinical data across different subgroups.
+Beyond metrics, Syndat visualizes how close synthetic data is to the real data: feature distributions, correlation structures, summary statistics and SHAP-based discrimination plots. It also allows users to generate stratified and interpretable visualisations, including raincloud plots, GOF plots, and trajectory comparisons, offering deeper insights into the quality of synthetic clinical data across different subgroups.
+
+Syndat is aimed at researchers and data scientists working with sensitive health data who need to check whether a synthetic dataset preserves statistical properties before using it for analysis or model development. See the [iScience paper](https://doi.org/10.1016/j.isci.2025.112382) for a worked evaluation of the fidelity versus privacy and utility trade-off of synthetic patient data.
+
+For a browser-based workflow, the [SYNDAT Dashboard](https://syndat.scai.fraunhofer.de) wraps Syndat in a web application that adds privacy risk estimates (via [anonymeter](https://github.com/statice/anonymeter)) alongside the quality scores. Use it if you need a privacy assessment; the `syndat` package itself covers quality only.
 
 # Installation
 
@@ -140,11 +143,15 @@ synthetic_post = syndat.postprocessing.normalize_float_precision(real, synthetic
 
 An example demonstrating how to compute distribution, discrimination, and correlation scores, as well as how to generate stratified visualizations (gof, raincloud and other plots), is available in `examples/rct_example.py`.
 
+# Documentation
+
+Full API documentation and a quickstart guide are available at [syndat.readthedocs.io](https://syndat.readthedocs.io), including an overview of the [synthetic data quality metrics](https://syndat.readthedocs.io/en/latest/metrics.html) and how to interpret them.
+
 # Acknowledgements
 
-This work was done as part of the [NFDI4Health](https://www.nfdi4health.de) Consortium. 
+Syndat is developed at the [Fraunhofer Institute for Algorithms and Scientific Computing (SCAI)](https://www.scai.fraunhofer.de) and is used within the [NFDI4Health](https://www.nfdi4health.de) Consortium for the assessment of synthetic health data.
 
-It is currently also being extended as part of the [SYNTHIA](https://www.ihi-synthia.eu/) collaboration.
+It is currently also being extended as part of the [SYNTHIA](https://www.ihi-synthia.eu/) collaboration, which develops synthetic data methodology for clinical trials and health research.
 
 
 # Citation
