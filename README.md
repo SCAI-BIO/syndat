@@ -7,9 +7,6 @@
 
 <a href="https://www.nfdi4health.de"><img src="https://img.shields.io/badge/Developed_in-NFDI4Health-1E88E5" alt="NFDI4Health"></a>&nbsp;<a href="https://www.ihi-synthia.eu"><img src="https://img.shields.io/badge/Extended_in-SYNTHIA-8E24AA" alt="SYNTHIA"></a>
 
-
-**Docs:** [syndat.readthedocs.io](https://syndat.readthedocs.io) · **Package:** [pypi.org/project/syndat](https://pypi.org/project/syndat) · **DOI:** [10.5281/zenodo.15791976](https://doi.org/10.5281/zenodo.15791976) · **Web app:** [syndat.scai.fraunhofer.de](https://syndat.scai.fraunhofer.de)
-
 # About
 
 Syndat is a Python library to **evaluate and visualize the quality of synthetic patient and clinical trial data**. It computes synthetic data quality metrics for tabular datasets — Jensen-Shannon distance, normalized correlation difference and discriminator AUC — and aggregates them into three scores (distribution, correlation and discrimination) that range from 0 to 100.
