@@ -1,6 +1,6 @@
 {
   "title": "syndat",
-  "description": "Syndat is a software package that provides basic functionalities for the evaluation and visualisation of synthetic data.",
+  "description": "Syndat is a Python library to evaluate and visualize the quality of synthetic patient and clinical trial data. It computes distribution (Jensen-Shannon distance), correlation and discrimination metrics and aggregates them into normalized quality scores.",
   "creators": [
     {
       "name": "Adams, Tim",
@@ -43,7 +43,7 @@
     },
     {
       "identifier": "10.5281/zenodo.23033951",
-      "relation": "isRequiredBy",
+      "relation": "isRelatedTo",
       "scheme": "doi",
       "resource_type": "software"
     },
@@ -69,10 +69,12 @@
   "keywords": [
     "synthetic data",
     "data quality",
-    "data privacy",
-    "data utility",
     "clinical data",
-    "data visualization"
+    "data visualization",
+    "synthetic patient data",
+    "clinical trial data",
+    "health informatics",
+    "synthetic data evaluation"
   ],
   "communities": [
     {

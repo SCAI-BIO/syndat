@@ -28,15 +28,19 @@ contributors:
 repository-code: https://github.com/SCAI-BIO/syndat
 repository-artifact: https://pypi.org/project/syndat/
 abstract: >
-  Syndat is a software package that provides basic functionalities for the evaluation 
-  and visualisation of synthetic data. 
+  Syndat is a Python library to evaluate and visualize the quality of synthetic
+  patient and clinical trial data. It computes distribution (Jensen-Shannon
+  distance), correlation and discrimination metrics and aggregates them into
+  normalized quality scores.
 
 keywords:
   - synthetic data
-  - data quality
-  - data privacy
-  - data utility
+  - synthetic patient data
   - clinical data
+  - synthetic data evaluation
+  - data fidelity
+  - data quality
+  - health informatics
   - data visualization
 
 preferred-citation:

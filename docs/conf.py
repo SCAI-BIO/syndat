@@ -19,6 +19,14 @@ exclude_patterns = []
 
 html_theme = "sphinx_rtd_theme"
 
+html_context = {
+    "display_github": True,
+    "github_user": "SCAI-BIO",
+    "github_repo": "syndat",
+    "github_version": "main",
+    "conf_py_path": "/docs/",
+}
+
 def get_version_from_git():
     try:
         tag = subprocess.check_output(

@@ -8,11 +8,15 @@
 <a href="https://www.nfdi4health.de"><img src="https://img.shields.io/badge/Developed_in-NFDI4Health-1E88E5" alt="NFDI4Health"></a>&nbsp;<a href="https://www.ihi-synthia.eu"><img src="https://img.shields.io/badge/Extended_in-SYNTHIA-8E24AA" alt="SYNTHIA"></a>
 
 
+**Docs:** [syndat.readthedocs.io](https://syndat.readthedocs.io) · **Package:** [pypi.org/project/syndat](https://pypi.org/project/syndat) · **DOI:** [10.5281/zenodo.15791976](https://doi.org/10.5281/zenodo.15791976) · **Web app:** [syndat.scai.fraunhofer.de](https://syndat.scai.fraunhofer.de)
+
 # About
 
-Syndat is a software package that provides basic functionalities for the evaluation and visualisation of synthetic data. Quality scores can be computed on 3 base metrics (Discrimation, Correlation and Distribution) and data may be visualized to inspect correlation structures or statistical distribution plots. 
+Syndat is a Python library to **evaluate and visualize the quality of synthetic patient and clinical trial data**. It computes synthetic data quality metrics for tabular datasets — Jensen-Shannon distance, normalized correlation difference and discriminator AUC — and aggregates them into three scores (distribution, correlation and discrimination) that range from 0 to 100.
 
-Syndat also allows users to generate stratified and interpretable visualisations, including raincloud plots, GOF plots, and trajectory comparisons, offering deeper insights into the quality of synthetic clinical data across different subgroups.
+Beyond metrics, Syndat visualizes how close synthetic data is to the real data: feature distributions, correlation structures, summary statistics and SHAP-based discrimination plots. It also allows users to generate stratified and interpretable visualisations, including raincloud plots, GOF plots, and trajectory comparisons, offering deeper insights into the quality of synthetic clinical data across different subgroups.
+
+Syndat is aimed at researchers and data scientists working with sensitive health data who need to check whether a synthetic dataset preserves statistical properties before using it for analysis or model development. See the [iScience paper](https://doi.org/10.1016/j.isci.2025.112382) for a worked evaluation of the fidelity versus privacy and utility trade-off of synthetic patient data.
 
 # Installation
 
@@ -140,11 +144,22 @@ synthetic_post = syndat.postprocessing.normalize_float_precision(real, synthetic
 
 An example demonstrating how to compute distribution, discrimination, and correlation scores, as well as how to generate stratified visualizations (gof, raincloud and other plots), is available in `examples/rct_example.py`.
 
+# Documentation
+
+Full API documentation and a quickstart guide are available at [syndat.readthedocs.io](https://syndat.readthedocs.io), including an overview of the [synthetic data quality metrics](https://syndat.readthedocs.io/en/latest/metrics.html) and how to interpret them.
+
+# Related projects
+
+- [SYNDAT Dashboard](https://github.com/nfdi4health/syndat-dashboard) — web application built on Syndat that adds privacy risk estimates (via [anonymeter](https://github.com/statice/anonymeter)) alongside the quality scores. Use it if you need privacy assessment; the `syndat` package itself covers quality only.
+- [SDMetrics](https://github.com/sdv-dev/SDMetrics) — general-purpose quality and fidelity metrics for synthetic tabular, relational and time-series data.
+- [synthcity](https://github.com/vanderschaarlab/synthcity) — synthetic data generation and benchmarking suite with a broad set of metrics.
+- [SDV](https://github.com/sdv-dev/SDV) — synthetic data generators (CTGAN, TVAE, Copulas) that pair well with Syndat for evaluation.
+
 # Acknowledgements
 
-This work was done as part of the [NFDI4Health](https://www.nfdi4health.de) Consortium. 
+Syndat is developed at the [Fraunhofer Institute for Algorithms and Scientific Computing (SCAI)](https://www.scai.fraunhofer.de) and is used within the [NFDI4Health](https://www.nfdi4health.de) Consortium for the assessment of synthetic health data.
 
-It is currently also being extended as part of the [SYNTHIA](https://www.ihi-synthia.eu/) collaboration.
+It is currently also being extended as part of the [SYNTHIA](https://www.ihi-synthia.eu/) collaboration, which develops synthetic data methodology for clinical trials and health research.
 
 
 # Citation
