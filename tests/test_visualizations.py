@@ -91,7 +91,7 @@ class TestPlotFunctions(unittest.TestCase):
         )
         output_files = os.listdir(self.store_path)
         self.assertIn("real_corr.png", output_files)
-        self.assertIn("syntehtic_corr.png", output_files)
+        self.assertIn("synthetic_corr.png", output_files)
 
     @patch("matplotlib.pyplot.show")
     def test_plot_categorical_feature_runs(self, mock_show):

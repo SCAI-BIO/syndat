@@ -157,7 +157,7 @@ def plot_correlations(
     :param synthetic: The synthetic data
     :param store_destination: Path to the folder where the results should be stored.
     """
-    names = ["real_corr", "syntehtic_corr"]
+    names = ["real_corr", "synthetic_corr"]
     for idx, patient_type in enumerate([real, synthetic]):
         plt.figure()
         plt.title("Correlation")
