@@ -36,7 +36,7 @@ dependencies = [
     "matplotlib>=3.9.2",
     "seaborn>=0.13.0",
     "shap>=0.48",
-    "plotnine>=0.13.6",
+    "plotnine>=0.15.9",
     "numpy>=1.26.2",
     "scipy>=1.11.4",
 ]
@@ -71,5 +71,5 @@ default-groups = "all"
 module-root = ""
 
 [build-system]
-requires = ["uv_build>=0.10.9,<0.14.0"]
+requires = ["uv_build>=0.13.7,<0.14.0"]
 build-backend = "uv_build"
